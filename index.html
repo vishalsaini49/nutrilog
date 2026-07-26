@@ -120,6 +120,7 @@
         <div class="d-flex gap-2 flex-wrap">
             <button class="btn btn-soft btn-sm" onclick="downloadBackup()">Download Backup</button>
             <button class="btn btn-soft btn-sm" onclick="downloadGlucosePdf()">Download PDF</button>
+            <button class="btn btn-soft btn-sm" onclick="exportFullCsv()">Export Full CSV</button>
             <button class="btn btn-outline-danger btn-sm" onclick="handleSignoutClick()">Logout</button>
         </div>
     </div>
@@ -130,7 +131,7 @@
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <div>
                         <div class="section-title">Profile Studio</div>
-                        <div class="text-secondary small">Manage the active user and daily goals.</div>
+                        <div class="text-secondary small">Manage users and daily goals.</div>
                     </div>
                     <span class="pill"><span id="profile-count">1</span> profiles</span>
                 </div>
@@ -195,7 +196,7 @@
                         <div class="section-title">Diabetes Tracker</div>
                         <div id="reading-mode-label" class="text-secondary small">Add or update a glucose reading.</div>
                     </div>
-                    <span class="pill"><span id="entry-count">0</span> entries today</span>
+                    <span class="pill"><span id="entry-count">0</span> entries on selected date</span>
                 </div>
                 <div class="row g-2">
                     <div class="col-md-3 col-sm-6">
@@ -249,9 +250,9 @@
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <div>
                 <div class="section-title">Glucose History</div>
-                <div class="text-secondary small">Recent summary of categorized readings.</div>
+                <div class="text-secondary small">Filter and see categorize summary.</div>
             </div>
-            <button class="btn btn-soft btn-sm" onclick="exportGlucoseCsv()">Export CSV</button>
+            <button class="btn btn-soft btn-sm" onclick="exportGlucoseCsv()">Export Summary CSV</button>
         </div>
         <div class="row g-2 mb-3">
             <div class="col-md-4">
@@ -287,7 +288,6 @@
 <script>
     /*
        IMPORTANT: REPLACE THIS WITH YOUR CLIENT ID FROM GOOGLE CLOUD CONSOLE
-       Example: 123456789-abc.apps.googleusercontent.com
     */
     const CLIENT_ID = '583712898903-pg9sad629qfo578sci924e4705nmc757.apps.googleusercontent.com';
     const SCOPES = 'https://www.googleapis.com/auth/drive.appdata email profile';
@@ -322,7 +322,7 @@
         return {
             id: Date.now(),
             email: email || "",
-            name: name || "Guest User",
+            name: name || "User",
             calorieGoal: DEFAULT_GOALS.calorieGoal,
             proteinGoal: DEFAULT_GOALS.proteinGoal,
             fibreGoal: DEFAULT_GOALS.fibreGoal
@@ -375,34 +375,20 @@
                 id = String(Date.now() + index + Math.floor(Math.random() * 1000));
             }
             seen.add(id);
-            return {
-                ...log,
-                id: isNaN(id) ? id : Number(id)
-            };
+            return { ...log, id: isNaN(id) ? id : Number(id) };
         });
     }
 
     function normalizeAppData(raw, userInfo) {
-        if (typeof raw === 'string') {
-            try { raw = JSON.parse(raw); } catch (e) { raw = {}; }
-        }
+        if (typeof raw === 'string') { try { raw = JSON.parse(raw); } catch (e) { raw = {}; } }
         const email = (raw && raw.email) ? raw.email : (userInfo?.email || "");
 
-        // Android now sends 'profile' as a single object for the active user
         let incomingProfiles = [];
-        if (raw?.profile) {
-            incomingProfiles = [raw.profile];
-        } else if (Array.isArray(raw?.profiles)) {
-            incomingProfiles = raw.profiles;
-        }
+        if (raw?.profile) { incomingProfiles = [raw.profile]; }
+        else if (Array.isArray(raw?.profiles)) { incomingProfiles = raw.profiles; }
 
-        const normalizedProfiles = incomingProfiles
-            .map(profile => normalizeProfile(profile, email))
-            .filter(Boolean);
-
-        if (normalizedProfiles.length === 0) {
-            normalizedProfiles.push(createDefaultProfile(email, userInfo?.name || "User"));
-        }
+        const normalizedProfiles = incomingProfiles.map(p => normalizeProfile(p, email)).filter(Boolean);
+        if (normalizedProfiles.length === 0) normalizedProfiles.push(createDefaultProfile(email, userInfo?.name || "User"));
 
         const activeProfileId = normalizeNumber(raw?.activeProfileId, normalizedProfiles[0].id);
 
@@ -427,9 +413,7 @@
         };
     }
 
-    function persistLocalBackup() {
-        try { localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(appData)); } catch (e) {}
-    }
+    function persistLocalBackup() { try { localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(appData)); } catch (e) {} }
 
     function hydrateLocalBackup(userInfo) {
         try {
@@ -454,6 +438,13 @@
     }
 
     function getSelectedDate() { return parseDate(document.getElementById('glucose-date').value); }
+
+    function getHistoryRange() {
+        return {
+            start: document.getElementById('history-start').value,
+            end: document.getElementById('history-end').value
+        };
+    }
 
     function setEditingState(log) {
         editingGlucoseId = log ? log.id : null;
@@ -753,6 +744,35 @@
             const data = await resp.json();
             fileId = data.id;
         }
+    }
+
+    function exportGlucoseCsv() {
+        const p = getActiveProfile();
+        const { start, end } = getHistoryRange();
+        const logs = filterLogsForActiveProfile(appData.diabetesLogs).filter(l => (!start || l.date >= start) && (!end || l.date <= end));
+        const grouped = {};
+        logs.forEach(l => {
+            if (!grouped[l.date]) grouped[l.date] = {};
+            grouped[l.date][mapReadingType(l)] = l.bloodSugar;
+        });
+        let csv = "Date,Fasting,Pre Lunch,Post Lunch,Pre Dinner,Bedtime\n";
+        Object.keys(grouped).sort().reverse().forEach(d => {
+            const day = grouped[d];
+            csv += `${d},${day['Fasting']||'-'},${day['Pre Lunch']||'-'},${day['Post Lunch']||'-'},${day['Pre Dinner']||'-'},${day['Bedtime']||'-'}\n`;
+        });
+        const b = new Blob([csv], {type:'text/csv'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `Glucose_Summary_${p.name}.csv`; a.click();
+    }
+
+    function exportFullCsv() {
+        let csv = "--- USER PROFILES ---\nID,Name,Email,CalorieGoal,ProteinGoal,FibreGoal\n";
+        appData.profiles.forEach(p => csv += `${p.id},"${p.name}","${p.email}",${p.calorieGoal},${p.proteinGoal},${p.fibreGoal}\n`);
+        csv += "\n--- NUTRITION LOGS ---\nID,ProfileID,Date,MealType,DishName,Calories,Protein,Fibre,Timestamp\n";
+        appData.nutritionLogs.forEach(l => csv += `${l.id},${l.profileId},${l.date},${l.mealType},"${l.dishName}",${l.calories},${l.protein},${l.fibre},${l.timestamp}\n`);
+        csv += "\n--- DIABETES LOGS ---\nID,ProfileID,Date,Time,Category,Glucose,Timestamp\n";
+        appData.diabetesLogs.forEach(l => csv += `${l.id},${l.profileId},${l.date},${l.time},"${l.notes}",${l.bloodSugar},${l.timestamp}\n`);
+        const b = new Blob([csv], {type:'text/csv'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'NutriLog_Full_Backup.csv'; a.click();
     }
 
     function downloadBackup() {

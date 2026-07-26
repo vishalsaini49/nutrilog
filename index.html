@@ -27,6 +27,7 @@
                 linear-gradient(180deg, #07111f 0%, #0b1425 100%);
             color: var(--text);
             font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            min-height: 100vh;
         }
         .card {
             background: linear-gradient(180deg, rgba(18, 28, 47, 0.96), rgba(14, 22, 36, 0.96));
@@ -179,10 +180,10 @@
                     <div class="d-flex justify-content-between mb-1"><span>Fibre</span> <span id="goal-fibre" class="text-cyan">0 / 0 g</span></div>
                     <div class="metric-bar"><div id="progress-fibre" style="width: 0%; background: #f472b6;"></div></div>
                 </div>
-                <div class="row g-2">
-                    <div class="col-4"><span class="pill w-100 justify-content-center">Cal <strong id="today-calories">0</strong></span></div>
-                    <div class="col-4"><span class="pill w-100 justify-content-center">Prot <strong id="today-protein">0</strong></span></div>
-                    <div class="col-4"><span class="pill w-100 justify-content-center">Fib <strong id="today-fibre">0</strong></span></div>
+                <div class="row g-2 text-center">
+                    <div class="col-4"><div class="text-secondary smaller">Cal</div><div id="today-calories" class="fw-bold">0</div></div>
+                    <div class="col-4"><div class="text-secondary smaller">Prot</div><div id="today-protein" class="fw-bold">0</div></div>
+                    <div class="col-4"><div class="text-secondary smaller">Fib</div><div id="today-fibre" class="fw-bold">0</div></div>
                 </div>
             </div>
         </div>
@@ -192,17 +193,17 @@
                 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                     <div>
                         <div class="section-title">Diabetes Tracker</div>
-                        <div class="text-secondary small" id="reading-mode-label">Add or update a glucose reading.</div>
+                        <div id="reading-mode-label" class="text-secondary small">Add or update a glucose reading.</div>
                     </div>
-                    <span class="pill"><span id="entry-count">0</span> entries on selected date</span>
+                    <span class="pill"><span id="entry-count">0</span> entries today</span>
                 </div>
                 <div class="row g-2">
-                    <div class="col-md-3">
-                        <label for="glucose-val" class="visually-hidden">Glucose Value</label>
-                        <input type="number" id="glucose-val" class="form-control" placeholder="mg/dL" min="1" step="0.1">
+                    <div class="col-md-3 col-sm-6">
+                        <label class="form-label small text-secondary mb-1">Value (mg/dL)</label>
+                        <input type="number" id="glucose-val" class="form-control" placeholder="0.0" min="1" step="0.1">
                     </div>
-                    <div class="col-md-3">
-                        <label for="glucose-type" class="visually-hidden">Reading Type</label>
+                    <div class="col-md-3 col-sm-6">
+                        <label class="form-label small text-secondary mb-1">Category</label>
                         <select id="glucose-type" class="form-select">
                             <option>Fasting</option>
                             <option>Pre Lunch</option>
@@ -211,43 +212,31 @@
                             <option>Bedtime</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <label for="glucose-date" class="visually-hidden">Date</label>
+                    <div class="col-md-3 col-sm-6">
+                        <label class="form-label small text-secondary mb-1">Date</label>
                         <input type="date" id="glucose-date" class="form-control">
                     </div>
-                    <div class="col-md-3">
-                        <div class="row g-1">
-                            <div class="col-4">
-                                <select id="time-hour" class="form-select px-1 small">
-                                    <!-- Populated by JS -->
-                                </select>
-                            </div>
-                            <div class="col-4">
-                                <select id="time-min" class="form-select px-1 small">
-                                    <!-- Populated by JS -->
-                                </select>
-                            </div>
-                            <div class="col-4">
-                                <select id="time-ampm" class="form-select px-1 small">
-                                    <option>AM</option>
-                                    <option>PM</option>
-                                </select>
-                            </div>
+                    <div class="col-md-3 col-sm-6">
+                        <label class="form-label small text-secondary mb-1">Time</label>
+                        <div class="input-group">
+                            <select id="time-hour" class="form-select px-1 small"></select>
+                            <select id="time-min" class="form-select px-1 small"></select>
+                            <select id="time-ampm" class="form-select px-1 small">
+                                <option>AM</option>
+                                <option>PM</option>
+                            </select>
                         </div>
                     </div>
-                    <div class="col-md-3 d-grid gap-2 mt-2">
-                        <button id="glucose-save-button" class="btn btn-amber" onclick="saveGlucose()">Save Entry</button>
-                        <button id="glucose-cancel-button" class="btn btn-soft d-none" onclick="cancelGlucoseEdit()">Cancel Edit</button>
+                    <div class="col-12 d-flex gap-2 mt-2">
+                        <button id="glucose-save-button" class="btn btn-amber flex-grow-1" onclick="saveGlucose()">Save Entry</button>
+                        <button id="glucose-cancel-button" class="btn btn-soft d-none" onclick="cancelGlucoseEdit()">Cancel</button>
                     </div>
                 </div>
 
                 <hr class="border-secondary border-opacity-25 my-4">
 
                 <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-                    <div>
-                        <div class="section-title">Selected day readings</div>
-                        <div class="text-secondary small">Edit or delete the entries for the chosen date.</div>
-                    </div>
+                    <div class="section-title">Day Readings</div>
                     <button class="btn btn-soft btn-sm" onclick="resetGlucoseForm()">Reset Form</button>
                 </div>
                 <div id="daily-entries" class="d-grid gap-2"></div>
@@ -255,11 +244,12 @@
         </div>
     </div>
 
+    <!-- History Table -->
     <div class="card p-3 mt-4">
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <div>
                 <div class="section-title">Glucose History</div>
-                <div class="text-secondary small">Filter a date range and export the active profile's readings.</div>
+                <div class="text-secondary small">Recent summary of categorized readings.</div>
             </div>
             <button class="btn btn-soft btn-sm" onclick="exportGlucoseCsv()">Export CSV</button>
         </div>
@@ -273,7 +263,6 @@
                 <input type="date" id="history-end" class="form-control">
             </div>
             <div class="col-md-4 d-grid align-items-end">
-                <label class="form-label small text-secondary mb-1 invisible">Apply</label>
                 <button class="btn btn-cyan" onclick="applyHistoryRange()">Apply Range</button>
             </div>
         </div>
@@ -331,7 +320,7 @@
 
     function createDefaultProfile(email, name) {
         return {
-            id: Date.now() + Math.floor(Math.random() * 1000),
+            id: Date.now(),
             email: email || "",
             name: name || "Guest User",
             calorieGoal: DEFAULT_GOALS.calorieGoal,
@@ -382,104 +371,89 @@
         const seen = new Set();
         appData.diabetesLogs = appData.diabetesLogs.map((log, index) => {
             let id = log && log.id != null ? String(log.id) : "";
-            if (!id || seen.has(id)) {
-                id = `g_${Date.now()}_${index}_${Math.floor(Math.random() * 10000)}`;
+            if (!id || id === "0" || seen.has(id)) {
+                id = String(Date.now() + index + Math.floor(Math.random() * 1000));
             }
             seen.add(id);
             return {
                 ...log,
-                id
+                id: isNaN(id) ? id : Number(id)
             };
         });
     }
 
     function normalizeAppData(raw, userInfo) {
         if (typeof raw === 'string') {
-            try {
-                raw = JSON.parse(raw);
-            } catch (error) {
-                raw = {};
-            }
+            try { raw = JSON.parse(raw); } catch (e) { raw = {}; }
         }
-        const email = raw && raw.email ? raw.email : (userInfo?.email || "");
-        const incomingProfiles = Array.isArray(raw?.profiles) ? raw.profiles : (raw?.profile ? [raw.profile] : []);
+        const email = (raw && raw.email) ? raw.email : (userInfo?.email || "");
+
+        // Android now sends 'profile' as a single object for the active user
+        let incomingProfiles = [];
+        if (raw?.profile) {
+            incomingProfiles = [raw.profile];
+        } else if (Array.isArray(raw?.profiles)) {
+            incomingProfiles = raw.profiles;
+        }
+
         const normalizedProfiles = incomingProfiles
             .map(profile => normalizeProfile(profile, email))
             .filter(Boolean);
 
         if (normalizedProfiles.length === 0) {
-            normalizedProfiles.push(createDefaultProfile(email, userInfo?.name || "Guest User"));
+            normalizedProfiles.push(createDefaultProfile(email, userInfo?.name || "User"));
         }
 
         const activeProfileId = normalizeNumber(raw?.activeProfileId, normalizedProfiles[0].id);
 
         const nutritionLogs = Array.isArray(raw?.nutritionLogs) ? raw.nutritionLogs.map(log => ({
             ...log,
+            id: log.id ? (isNaN(log.id) ? log.id : Number(log.id)) : Date.now(),
             profileId: normalizeLogProfileId(log, activeProfileId)
         })) : [];
 
         const diabetesLogs = Array.isArray(raw?.diabetesLogs) ? raw.diabetesLogs.map((log, index) => ({
             ...log,
-            id: log && log.id != null ? String(log.id) : `g_${Date.now()}_${index}`,
+            id: log.id ? (isNaN(log.id) ? log.id : Number(log.id)) : (Date.now() + index),
             profileId: normalizeLogProfileId(log, activeProfileId)
         })) : [];
 
         return {
             email,
             profiles: normalizedProfiles,
-            activeProfileId: normalizedProfiles.some(profile => profile.id === activeProfileId) ? activeProfileId : normalizedProfiles[0].id,
+            activeProfileId: normalizedProfiles.some(p => p.id === activeProfileId) ? activeProfileId : normalizedProfiles[0].id,
             nutritionLogs,
             diabetesLogs
         };
     }
 
     function persistLocalBackup() {
-        try {
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(appData));
-        } catch (error) {
-            console.warn('Local backup save failed', error);
-        }
+        try { localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(appData)); } catch (e) {}
     }
 
     function hydrateLocalBackup(userInfo) {
         try {
             const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
             if (!raw) return null;
-            return normalizeAppData(JSON.parse(raw), userInfo);
-        } catch (error) {
-            console.warn('Local backup load failed', error);
-            return null;
-        }
+            return normalizeAppData(raw, userInfo);
+        } catch (e) { return null; }
     }
 
     function getActiveProfile() {
         if (!Array.isArray(appData.profiles) || appData.profiles.length === 0) return null;
-        return appData.profiles.find(profile => profile.id === appData.activeProfileId) || appData.profiles[0];
+        return appData.profiles.find(p => p.id === appData.activeProfileId) || appData.profiles[0];
     }
 
-    function parseDate(value) {
-        return value || new Date().toISOString().split('T')[0];
-    }
+    function parseDate(value) { return value || new Date().toISOString().split('T')[0]; }
 
     function formatDateLabel(dateString) {
         try {
             const date = new Date(`${dateString}T00:00:00`);
             return new Intl.DateTimeFormat(undefined, { weekday: 'short', month: 'short', day: 'numeric' }).format(date);
-        } catch (error) {
-            return dateString;
-        }
+        } catch (e) { return dateString; }
     }
 
-    function getSelectedDate() {
-        return parseDate(document.getElementById('glucose-date').value);
-    }
-
-    function getHistoryRange() {
-        return {
-            start: document.getElementById('history-start').value,
-            end: document.getElementById('history-end').value
-        };
-    }
+    function getSelectedDate() { return parseDate(document.getElementById('glucose-date').value); }
 
     function setEditingState(log) {
         editingGlucoseId = log ? log.id : null;
@@ -497,9 +471,7 @@
         setEditingState(null);
     }
 
-    function cancelGlucoseEdit() {
-        resetGlucoseForm(document.getElementById('glucose-date').value);
-    }
+    function cancelGlucoseEdit() { resetGlucoseForm(document.getElementById('glucose-date').value); }
 
     function switchProfileFromSelect() {
         const selectedId = Number(document.getElementById('profile-select').value);
@@ -513,24 +485,19 @@
     function saveActiveProfile() {
         const profile = getActiveProfile();
         if (!profile) return;
-
         profile.name = document.getElementById('profile-name').value.trim() || 'User';
         profile.calorieGoal = normalizeNumber(document.getElementById('profile-calorie-goal').value, DEFAULT_GOALS.calorieGoal);
         profile.proteinGoal = normalizeNumber(document.getElementById('profile-protein-goal').value, DEFAULT_GOALS.proteinGoal);
         profile.fibreGoal = normalizeNumber(document.getElementById('profile-fibre-goal').value, DEFAULT_GOALS.fibreGoal);
-        profile.email = document.getElementById('profile-email').dataset.email || profile.email;
-        appData.profiles = appData.profiles.map(item => item.id === profile.id ? profile : item);
         renderUI();
         syncToDrive();
         alert('Profile saved.');
     }
 
     function addProfile() {
-        const baseName = prompt('Enter a profile name', 'New Profile');
-        if (baseName === null) return;
-
-        const email = document.getElementById('profile-email').dataset.email || appData.email || '';
-        const newProfile = createDefaultProfile(email, baseName.trim() || 'User');
+        const name = prompt('Enter a profile name', 'New Profile');
+        if (!name) return;
+        const newProfile = createDefaultProfile(appData.email, name.trim());
         appData.profiles.push(newProfile);
         appData.activeProfileId = newProfile.id;
         renderUI();
@@ -538,19 +505,10 @@
     }
 
     function deleteActiveProfile() {
-        if (!Array.isArray(appData.profiles) || appData.profiles.length <= 1) {
-            alert('Keep at least one profile.');
-            return;
-        }
-
-        const activeProfile = getActiveProfile();
-        if (!activeProfile) return;
-
-        if (!confirm(`Delete profile "${activeProfile.name}" and its linked logs?`)) return;
-
-        appData.profiles = appData.profiles.filter(profile => profile.id !== activeProfile.id);
-        appData.nutritionLogs = (appData.nutritionLogs || []).filter(log => normalizeLogProfileId(log, activeProfile.id) !== activeProfile.id);
-        appData.diabetesLogs = (appData.diabetesLogs || []).filter(log => normalizeLogProfileId(log, activeProfile.id) !== activeProfile.id);
+        if (appData.profiles.length <= 1) return alert('Keep at least one profile.');
+        const profile = getActiveProfile();
+        if (!confirm(`Delete profile "${profile.name}" and its logs?`)) return;
+        appData.profiles = appData.profiles.filter(p => p.id !== profile.id);
         appData.activeProfileId = appData.profiles[0].id;
         renderUI();
         syncToDrive();
@@ -559,36 +517,25 @@
     function buildActiveProfileOptions() {
         const select = document.getElementById('profile-select');
         select.innerHTML = '';
-
-        appData.profiles.forEach(profile => {
-            const option = document.createElement('option');
-            option.value = profile.id;
-            option.textContent = profile.name;
-            if (profile.id === appData.activeProfileId) option.selected = true;
-            select.appendChild(option);
+        appData.profiles.forEach(p => {
+            const opt = new Option(p.name, p.id);
+            if (p.id === appData.activeProfileId) opt.selected = true;
+            select.add(opt);
         });
     }
 
     function filterLogsForActiveProfile(logs) {
-        const profile = getActiveProfile();
-        if (!profile) return [];
-        return (logs || []).filter(log => normalizeLogProfileId(log, profile.id) === profile.id);
+        const p = getActiveProfile();
+        if (!p) return [];
+        return (logs || []).filter(l => normalizeLogProfileId(l, p.id) === p.id);
     }
 
-    function findLogById(logId) {
-        if (logId == null) return null;
-        const wantedId = String(logId);
-        return (appData.diabetesLogs || []).find(log => String(log.id) === wantedId) || null;
-    }
-
-    function startEditGlucose(logId) {
-        const log = findLogById(logId);
+    function startEditGlucose(id) {
+        const log = (appData.diabetesLogs || []).find(l => String(l.id) === String(id));
         if (!log) return;
         document.getElementById('glucose-val').value = log.bloodSugar;
-        document.getElementById('glucose-type').value = log.notes || 'Fasting';
-        document.getElementById('glucose-date').value = log.date || new Date().toISOString().split('T')[0];
-
-        // Populate time selectors
+        document.getElementById('glucose-type').value = log.notes;
+        document.getElementById('glucose-date').value = log.date;
         const [h24, m] = (log.time || "12:00").split(":");
         let h = parseInt(h24);
         const ampm = h >= 12 ? "PM" : "AM";
@@ -596,201 +543,26 @@
         document.getElementById('time-hour').value = h;
         document.getElementById('time-min').value = m;
         document.getElementById('time-ampm').value = ampm;
-
         setEditingState(log);
     }
 
-    function deleteGlucose(logId) {
-        const log = findLogById(logId);
-        if (!log) return;
-        if (!confirm(`Delete the ${log.notes || 'reading'} entry from ${log.date}?`)) return;
-        appData.diabetesLogs = (appData.diabetesLogs || []).filter(item => String(item.id) !== String(logId));
-        if (editingGlucoseId && String(editingGlucoseId) === String(logId)) resetGlucoseForm();
+    function deleteGlucose(id) {
+        if (!confirm(`Delete this entry?`)) return;
+        appData.diabetesLogs = (appData.diabetesLogs || []).filter(l => String(l.id) !== String(id));
+        if (String(editingGlucoseId) === String(id)) resetGlucoseForm();
         renderUI();
         syncToDrive();
     }
 
-    function applyHistoryRange() {
-        renderUI();
-    }
+    function applyHistoryRange() { renderUI(); }
 
-    function exportGlucoseCsv() {
-        const profile = getActiveProfile();
-        if (!profile) return;
-        const { start, end } = getHistoryRange();
-        const filtered = filterLogsForActiveProfile(appData.diabetesLogs || [])
-            .filter(log => (!start || log.date >= start) && (!end || log.date <= end));
-        const grouped = {};
-        filtered.forEach(log => {
-            if (!grouped[log.date]) grouped[log.date] = {};
-            grouped[log.date][mapReadingType(log)] = log.bloodSugar;
-        });
-
-        const rows = [['Date', 'Fasting', 'Pre-L', 'Post-L', 'Pre-D', 'Bedtime']];
-        const sortedDates = Object.keys(grouped).sort().reverse();
-        sortedDates.forEach(date => {
-            const day = grouped[date];
-            rows.push([
-                date,
-                day['Fasting'] ?? '-',
-                day['Pre Lunch'] ?? '-',
-                day['Post Lunch'] ?? '-',
-                day['Pre Dinner'] ?? '-',
-                day['Bedtime'] ?? '-'
-            ]);
-        });
-
-        const csv = rows.map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(',')).join('\n');
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `DiabetesLogs_${profile.name.replace(/[^a-zA-Z0-9]/g, '_')}_${start || 'start'}_to_${end || 'end'}.csv`;
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        URL.revokeObjectURL(url);
-    }
-
-    function downloadBackup() {
-        const blob = new Blob([JSON.stringify(appData, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'nutrilog_backup.json';
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        URL.revokeObjectURL(url);
-    }
-
-    function downloadGlucosePdf() {
-        const profile = getActiveProfile();
-        if (!profile) return alert('No profile selected.');
-
-        const { start, end } = getHistoryRange();
-        const logs = filterLogsForActiveProfile(appData.diabetesLogs || [])
-            .filter(log => (!start || log.date >= start) && (!end || log.date <= end));
-
-        if (!window.jspdf || !window.jspdf.jsPDF) {
-            alert('PDF library failed to load. Please check your connection and try again.');
-            return;
-        }
-
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-        const pageWidth = doc.internal.pageSize.getWidth();
-        const pageHeight = doc.internal.pageSize.getHeight();
-        const margin = 12;
-
-        const addPageHeader = () => {
-            // Navy Header Background
-            doc.setFillColor(30, 41, 59);
-            doc.rect(0, 0, pageWidth, 45, 'F');
-
-            doc.setTextColor(248, 250, 252);
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(18);
-            doc.text('GLUCOSE DIABETES RECORD REPORT', margin, 18);
-
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
-            doc.text('Structured Glucose & Meal-Triggered Blood Sugar Summary', margin, 25);
-
-            // Info Box
-            doc.setFillColor(241, 245, 249);
-            doc.rect(margin, 30, pageWidth - (margin * 2), 12, 'F');
-            doc.setTextColor(15, 23, 42);
-            doc.setFontSize(9);
-            doc.text(`Patient: ${profile.name}`, margin + 4, 37);
-            doc.text(`Period: ${start || 'All'} to ${end || 'All'}`, margin + 80, 37);
-        };
-
-        addPageHeader();
-
-        // Table Header
-        let y = 55;
-        const colWidths = [30, 30, 30, 30, 30, 30];
-        const tableWidth = pageWidth - (margin * 2);
-        const colW = tableWidth / 6;
-
-        const drawTableHeader = () => {
-            doc.setFillColor(30, 41, 59);
-            doc.rect(margin, y, tableWidth, 10, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(9);
-            doc.setFont('helvetica', 'bold');
-            const headers = ['Date', 'Fasting', 'Pre Lunch', 'Post Lunch', 'Pre Dinner', 'Bedtime'];
-            headers.forEach((h, i) => {
-                doc.text(h, margin + (i * colW) + 2, y + 6.5);
-            });
-            y += 10;
-        };
-
-        drawTableHeader();
-
-        // Data processing
-        const grouped = {};
-        logs.forEach(log => {
-            if (!grouped[log.date]) grouped[log.date] = {};
-            const hour = parseInt((log.time || "12:00").split(":")[0]);
-            let key = log.notes;
-            if (key === "Pre-Meal") key = (hour < 16) ? "Pre Lunch" : "Pre Dinner";
-            if (key === "Post-Meal") key = "Post Lunch";
-            grouped[log.date][key] = log.bloodSugar;
-        });
-
-        const sortedDates = Object.keys(grouped).sort().reverse();
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(15, 23, 42);
-
-        sortedDates.forEach((date, index) => {
-            if (y > pageHeight - 20) {
-                doc.addPage();
-                y = 15;
-                drawTableHeader();
-            }
-
-            // Alternating Row Color
-            if (index % 2 === 0) {
-                doc.setFillColor(248, 250, 252);
-                doc.rect(margin, y, tableWidth, 8, 'F');
-            }
-
-            doc.setFontSize(8.5);
-            doc.text(date, margin + 2, y + 5.5);
-
-            const day = grouped[date];
-            const cols = ['Fasting', 'Pre Lunch', 'Post Lunch', 'Pre Dinner', 'Bedtime'];
-            cols.forEach((c, i) => {
-                const val = day[c] ? Math.round(day[c]).toString() : '-';
-                doc.text(val, margin + ((i + 1) * colW) + 5, y + 5.5);
-            });
-
-            // Row border
-            doc.setDrawColor(226, 232, 240);
-            doc.line(margin, y + 8, margin + tableWidth, y + 8);
-            y += 8;
-        });
-
-        const safeName = profile.name.replace(/[^a-zA-Z0-9]/g, '_');
-        doc.save(`DiabetesReport_${safeName}_${start || 'all'}_to_${end || 'all'}.pdf`);
-    }
-
-    function gapiLoaded() { gapi.load('client', intializeGapiClient); }
-    async function intializeGapiClient() {
-        await gapi.client.init({
-            discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],
-        });
+    function gapiLoaded() { gapi.load('client', async () => {
+        await gapi.client.init({ discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"] });
         gapiInited = true;
         maybeEnableButtons();
-    }
+    }); }
     function gisLoaded() {
-        tokenClient = google.accounts.oauth2.initTokenClient({
-            client_id: CLIENT_ID,
-            scope: SCOPES,
-            callback: '', // defined later
-        });
+        tokenClient = google.accounts.oauth2.initTokenClient({ client_id: CLIENT_ID, scope: SCOPES, callback: '' });
         gisInited = true;
         maybeEnableButtons();
     }
@@ -802,25 +574,18 @@
     }
 
     function handleAuthClick() {
-        if (!tokenClient) return alert("Google scripts not loaded yet. Please refresh.");
-
         tokenClient.callback = async (resp) => {
-            if (resp.error !== undefined) throw (resp);
+            if (resp.error) throw resp;
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('content').style.display = 'block';
             await loadDataFromDrive();
         };
-
-        if (gapi.client.getToken() === null) {
-            tokenClient.requestAccessToken({prompt: 'consent'});
-        } else {
-            tokenClient.requestAccessToken({prompt: ''});
-        }
+        tokenClient.requestAccessToken({prompt: gapi.client.getToken() ? '' : 'consent'});
     }
 
     function handleSignoutClick() {
         const token = gapi.client.getToken();
-        if (token !== null) {
+        if (token) {
             google.accounts.oauth2.revoke(token.access_token);
             gapi.client.setToken('');
             document.getElementById('content').style.display = 'none';
@@ -829,196 +594,120 @@
     }
 
     async function loadDataFromDrive() {
-        let userInfo = { name: "Guest User", email: "" };
         try {
-            // 1. Get User Info
-            const userResp = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                headers: { Authorization: `Bearer ${gapi.client.getToken().access_token}` }
-            });
-            userInfo = await userResp.json();
+            const userResp = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', { headers: { Authorization: `Bearer ${gapi.client.getToken().access_token}` } });
+            const userInfo = await userResp.json();
             document.getElementById('user-name').innerText = userInfo.name;
             document.getElementById('user-email').innerText = userInfo.email;
 
-            // 2. Find Backup File
-            const response = await gapi.client.drive.files.list({
-                spaces: 'appDataFolder',
-                q: "name = 'nutrilog_backup.json'",
-                fields: 'files(id, name)'
-            });
-
+            const response = await gapi.client.drive.files.list({ spaces: 'appDataFolder', q: "name = 'nutrilog_backup.json'", fields: 'files(id, name)' });
             const files = response.result.files;
             if (files && files.length > 0) {
                 fileId = files[0].id;
-                const fileContent = await gapi.client.drive.files.get({
-                    fileId: fileId,
-                    alt: 'media'
-                });
-                appData = normalizeAppData(fileContent.result || {}, userInfo);
+                const fileContent = await gapi.client.drive.files.get({ fileId: fileId, alt: 'media' });
+                appData = normalizeAppData(fileContent.result, userInfo);
                 persistLocalBackup();
                 renderUI();
             } else {
-                console.log("No backup file found, starting fresh.");
-                appData = normalizeAppData({
-                    email: userInfo.email,
-                    profile: { name: userInfo.name, email: userInfo.email, calorieGoal: 2000, proteinGoal: 60, fibreGoal: 25 },
-                    nutritionLogs: [],
-                    diabetesLogs: []
-                }, userInfo);
-                persistLocalBackup();
+                appData = normalizeAppData({}, userInfo);
                 renderUI();
             }
         } catch (e) {
-            console.error("Error loading data", e);
-            const fallback = hydrateLocalBackup(userInfo);
-            if (fallback) {
-                appData = fallback;
-                console.warn('Google Drive sync is unavailable right now, using local backup.');
-            } else {
-                appData = normalizeAppData({
-                    email: userInfo.email,
-                    profile: { name: userInfo.name, email: userInfo.email, calorieGoal: 2000, proteinGoal: 60, fibreGoal: 25 },
-                    nutritionLogs: [],
-                    diabetesLogs: []
-                }, userInfo);
-                console.warn('Google Drive sync is unavailable right now, starting a local session.');
-            }
-            persistLocalBackup();
+            console.error(e);
+            const fallback = hydrateLocalBackup();
+            if (fallback) appData = fallback;
             renderUI();
         }
     }
 
     function renderUI() {
         ensureDiabetesLogIds();
-        const today = new Date().toISOString().split('T')[0];
         const activeProfile = getActiveProfile();
         if (!activeProfile) return;
-
         buildActiveProfileOptions();
 
         document.getElementById('profile-count').innerText = appData.profiles.length;
-        document.getElementById('profile-name').value = activeProfile.name || '';
-        document.getElementById('profile-calorie-goal').value = Math.round(activeProfile.calorieGoal || DEFAULT_GOALS.calorieGoal);
-        document.getElementById('profile-protein-goal').value = Math.round(activeProfile.proteinGoal || DEFAULT_GOALS.proteinGoal);
-        document.getElementById('profile-fibre-goal').value = Math.round(activeProfile.fibreGoal || DEFAULT_GOALS.fibreGoal);
-        document.getElementById('profile-email').innerText = activeProfile.email || appData.email || 'Not set';
-        document.getElementById('profile-email').dataset.email = activeProfile.email || appData.email || '';
+        document.getElementById('profile-name').value = activeProfile.name;
+        document.getElementById('profile-calorie-goal').value = Math.round(activeProfile.calorieGoal);
+        document.getElementById('profile-protein-goal').value = Math.round(activeProfile.proteinGoal);
+        document.getElementById('profile-fibre-goal').value = Math.round(activeProfile.fibreGoal);
+        document.getElementById('profile-email').innerText = activeProfile.email || 'Not set';
 
-        if (!document.getElementById('glucose-date').value) {
-            document.getElementById('glucose-date').value = today;
-        }
-        if (!document.getElementById('history-start').value || !document.getElementById('history-end').value) {
-            const end = new Date();
-            const start = new Date();
-            start.setDate(start.getDate() - 6);
-            document.getElementById('history-start').value = start.toISOString().split('T')[0];
-            document.getElementById('history-end').value = end.toISOString().split('T')[0];
-        }
+        const today = new Date().toISOString().split('T')[0];
+        const todayNutri = (appData.nutritionLogs || []).filter(l => normalizeLogProfileId(l, activeProfile.id) === activeProfile.id && l.date === today);
+        const totalCal = todayNutri.reduce((s, l) => s + (l.calories || 0), 0);
+        const totalProt = todayNutri.reduce((s, l) => s + (l.protein || 0), 0);
+        const totalFib = todayNutri.reduce((s, l) => s + (l.fibre || 0), 0);
 
-        const todayNutri = (appData.nutritionLogs || []).filter(log => normalizeLogProfileId(log, activeProfile.id) === activeProfile.id && log.date === today);
-        const totalCal = todayNutri.reduce((sum, log) => sum + (log.calories || 0), 0);
-        const totalProtein = todayNutri.reduce((sum, log) => sum + (log.protein || 0), 0);
-        const totalFibre = todayNutri.reduce((sum, log) => sum + (log.fibre || 0), 0);
-        const goalCal = activeProfile.calorieGoal || DEFAULT_GOALS.calorieGoal;
-        const goalProtein = activeProfile.proteinGoal || DEFAULT_GOALS.proteinGoal;
-        const goalFibre = activeProfile.fibreGoal || DEFAULT_GOALS.fibreGoal;
-
-        document.getElementById('goal-cal').innerText = `${Math.round(totalCal)} / ${Math.round(goalCal)}`;
-        document.getElementById('goal-protein').innerText = `${totalProtein.toFixed(1)} / ${Math.round(goalProtein)} g`;
-        document.getElementById('goal-fibre').innerText = `${totalFibre.toFixed(1)} / ${Math.round(goalFibre)} g`;
-        document.getElementById('progress-cal').style.width = `${Math.min(100, (totalCal / goalCal) * 100)}%`;
-        document.getElementById('progress-protein').style.width = `${Math.min(100, (totalProtein / goalProtein) * 100)}%`;
-        document.getElementById('progress-fibre').style.width = `${Math.min(100, (totalFibre / goalFibre) * 100)}%`;
+        document.getElementById('goal-cal').innerText = `${Math.round(totalCal)} / ${activeProfile.calorieGoal}`;
+        document.getElementById('progress-cal').style.width = `${Math.min(100, (totalCal/activeProfile.calorieGoal)*100)}%`;
         document.getElementById('today-calories').innerText = Math.round(totalCal);
-        document.getElementById('today-protein').innerText = totalProtein.toFixed(1);
-        document.getElementById('today-fibre').innerText = totalFibre.toFixed(1);
+        document.getElementById('today-protein').innerText = totalProt.toFixed(1);
+        document.getElementById('today-fibre').innerText = totalFib.toFixed(1);
 
         const selectedDate = getSelectedDate();
-        const dailyEntries = filterLogsForActiveProfile(appData.diabetesLogs || [])
-            .filter(log => log.date === selectedDate)
-            .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-
+        const dailyEntries = filterLogsForActiveProfile(appData.diabetesLogs).filter(l => l.date === selectedDate);
         document.getElementById('entry-count').innerText = dailyEntries.length;
 
         const dailyContainer = document.getElementById('daily-entries');
-        if (dailyEntries.length === 0) {
-            dailyContainer.innerHTML = `<div class="entry-card p-3 text-secondary">No readings logged for ${formatDateLabel(selectedDate)}.</div>`;
-        } else {
-            dailyContainer.innerHTML = dailyEntries.map(log => `
+        dailyContainer.innerHTML = dailyEntries.length === 0 ? `<div class="entry-card p-3 text-secondary text-center">No readings logged for ${formatDateLabel(selectedDate)}.</div>` :
+            dailyEntries.map(l => `
                 <div class="entry-card p-3 d-flex justify-content-between align-items-center gap-3 flex-wrap">
                     <div>
-                        <div class="d-flex align-items-center gap-2 flex-wrap">
-                            <strong class="text-cyan">${Number(log.bloodSugar).toFixed(1)} mg/dL</strong>
-                            <span class="pill">${log.notes || 'Reading'}</span>
-                        </div>
-                        <div class="text-secondary small mt-1">${log.date} • ${log.time || '--:--'}</div>
+                        <strong class="text-cyan">${Number(l.bloodSugar).toFixed(1)} mg/dL</strong>
+                        <span class="pill ms-2">${l.notes}</span>
+                        <div class="text-secondary smaller mt-1">${l.date} • ${formatTimeTo12Hour(l.time)}</div>
                     </div>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-soft btn-sm" onclick="startEditGlucose('${String(log.id).replace(/'/g, "\\'")}')">Edit</button>
-                        <button class="btn btn-outline-danger btn-sm" onclick="deleteGlucose('${String(log.id).replace(/'/g, "\\'")}')">Delete</button>
+                        <button class="btn btn-soft btn-sm" onclick="startEditGlucose('${l.id}')">Edit</button>
+                        <button class="btn btn-outline-danger btn-sm" onclick="deleteGlucose('${l.id}')">Delete</button>
                     </div>
                 </div>
             `).join('');
-        }
 
         const { start, end } = getHistoryRange();
         const grouped = {};
-        filterLogsForActiveProfile(appData.diabetesLogs || [])
-            .filter(log => (!start || log.date >= start) && (!end || log.date <= end))
-            .forEach(log => {
-                if (!grouped[log.date]) grouped[log.date] = {};
-                grouped[log.date][mapReadingType(log)] = log.bloodSugar;
+        filterLogsForActiveProfile(appData.diabetesLogs)
+            .filter(l => (!start || l.date >= start) && (!end || l.date <= end))
+            .forEach(l => {
+                if (!grouped[l.date]) grouped[l.date] = {};
+                grouped[l.date][mapReadingType(l)] = l.bloodSugar;
             });
 
         const tbody = document.getElementById('history-body');
         tbody.innerHTML = '';
-        const sortedDates = Object.keys(grouped).sort().reverse();
-        if (sortedDates.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center text-secondary py-4">No readings in the selected range.</td></tr>`;
-        } else {
-            sortedDates.forEach(date => {
-                const day = grouped[date];
-                const row = `<tr>
-                    <td class="text-cyan">${date}</td>
-                    <td>${day['Fasting'] || '-'}</td>
-                    <td>${day['Pre Lunch'] || '-'}</td>
-                    <td>${day['Post Lunch'] || '-'}</td>
-                    <td>${day['Pre Dinner'] || '-'}</td>
-                    <td>${day['Bedtime'] || '-'}</td>
-                </tr>`;
-                tbody.innerHTML += row;
-            });
-        }
+        Object.keys(grouped).sort().reverse().forEach(date => {
+            const day = grouped[date];
+            tbody.innerHTML += `<tr>
+                <td class="text-cyan fw-bold">${date}</td>
+                <td>${day['Fasting'] || '-'}</td>
+                <td>${day['Pre Lunch'] || '-'}</td>
+                <td>${day['Post Lunch'] || '-'}</td>
+                <td>${day['Pre Dinner'] || '-'}</td>
+                <td>${day['Bedtime'] || '-'}</td>
+            </tr>`;
+        });
+    }
+
+    function formatTimeTo12Hour(t) {
+        if(!t) return '--:--';
+        const [h, m] = t.split(':');
+        const hh = parseInt(h);
+        const ampm = hh >= 12 ? 'PM' : 'AM';
+        return `${hh % 12 || 12}:${m} ${ampm}`;
     }
 
     async function saveGlucose() {
-        ensureDiabetesLogIds();
         const val = parseFloat(document.getElementById('glucose-val').value);
         const type = document.getElementById('glucose-type').value;
         const date = document.getElementById('glucose-date').value;
+        if (!val || !date) return alert("Value and Date required");
 
-        if (!val || !date) return alert("Please enter value and date");
+        const profile = getActiveProfile();
+        const duplicate = appData.diabetesLogs.find(l => normalizeLogProfileId(l, profile.id) === profile.id && l.date === date && l.notes === type && String(l.id) !== String(editingGlucoseId));
+        if (duplicate && !editingGlucoseId && !confirm(`Overwrite existing ${type} reading for ${date}?`)) return;
 
-        const activeProfile = getActiveProfile();
-        if (!activeProfile) return alert('No profile selected.');
-
-        if (!appData.diabetesLogs) appData.diabetesLogs = [];
-
-        const duplicate = appData.diabetesLogs.find(log =>
-            normalizeLogProfileId(log, activeProfile.id) === activeProfile.id &&
-            log.date === date &&
-            log.notes === type &&
-            String(log.id) !== String(editingGlucoseId)
-        );
-
-        if (duplicate && editingGlucoseId === null) {
-            const shouldReplace = confirm(`A ${type} reading already exists for ${date}. Replace it?`);
-            if (!shouldReplace) return;
-        }
-
-        appData.diabetesLogs = appData.diabetesLogs.filter(log =>
-            String(log.id) === String(editingGlucoseId) ||
-            !(normalizeLogProfileId(log, activeProfile.id) === activeProfile.id && log.date === date && log.notes === type)
-        );
+        appData.diabetesLogs = appData.diabetesLogs.filter(l => String(l.id) === String(editingGlucoseId) || !(normalizeLogProfileId(l, profile.id) === profile.id && l.date === date && l.notes === type));
 
         const h = parseInt(document.getElementById('time-hour').value);
         const m = document.getElementById('time-min').value;
@@ -1026,50 +715,36 @@
         let h24 = h;
         if (ampm === "PM" && h < 12) h24 += 12;
         if (ampm === "AM" && h === 12) h24 = 0;
-        const timeStr = `${h24.toString().padStart(2, '0')}:${m}`;
 
-        const existingId = editingGlucoseId || `g_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
-
-        appData.diabetesLogs.push({
-            id: existingId,
-            profileId: activeProfile.id,
+        const newLog = {
+            id: editingGlucoseId || Date.now(),
+            profileId: profile.id,
             date: date,
-            time: timeStr,
+            time: `${h24.toString().padStart(2, '0')}:${m}`,
             bloodSugar: val,
             notes: type,
             timestamp: Date.now()
-        });
-
-        appData.diabetesLogs.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-
+        };
+        appData.diabetesLogs.push(newLog);
         resetGlucoseForm(date);
         renderUI();
         await syncToDrive();
-        alert("Saved & Synced!");
+        alert("Synced!");
     }
 
     async function syncToDrive() {
-        persistLocalBackup();
-        const metadata = {
-            name: 'nutrilog_backup.json',
-            mimeType: 'application/json'
-        };
-
+        const metadata = { name: 'nutrilog_backup.json', mimeType: 'application/json' };
         const file = new Blob([JSON.stringify(appData)], {type: 'application/json'});
-
         if (fileId) {
-            // Update
             await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
                 method: 'PATCH',
                 headers: { Authorization: `Bearer ${gapi.client.getToken().access_token}` },
                 body: file
             });
         } else {
-            // Create
             const form = new FormData();
             form.append('metadata', new Blob([JSON.stringify({ ...metadata, parents: ['appDataFolder'] })], { type: 'application/json' }));
             form.append('file', file);
-
             const resp = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${gapi.client.getToken().access_token}` },
@@ -1080,15 +755,51 @@
         }
     }
 
+    function downloadBackup() {
+        const b = new Blob([JSON.stringify(appData, null, 2)], {type:'application/json'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'nutrilog_backup.json'; a.click();
+    }
+
+    function downloadGlucosePdf() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const profile = getActiveProfile();
+
+        doc.setFillColor(30, 41, 59); doc.rect(0, 0, pageWidth, 45, 'F');
+        doc.setTextColor(248, 250, 252); doc.setFontSize(18); doc.text('GLUCOSE DIABETES RECORD REPORT', 12, 18);
+        doc.setFontSize(10); doc.text('Structured Glucose & Meal-Triggered Blood Sugar Summary', 12, 25);
+        doc.setFillColor(241, 245, 249); doc.rect(12, 30, pageWidth - 24, 12, 'F');
+        doc.setTextColor(15, 23, 42); doc.setFontSize(9); doc.text(`Patient: ${profile.name}`, 16, 37);
+
+        let y = 55; const colW = (pageWidth - 24) / 6;
+        doc.setFillColor(30, 41, 59); doc.rect(12, y, pageWidth - 24, 10, 'F');
+        doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold');
+        ['Date', 'Fasting', 'Pre Lunch', 'Post Lunch', 'Pre Dinner', 'Bedtime'].forEach((h, i) => doc.text(h, 12 + (i * colW) + 2, y + 6.5));
+
+        const grouped = {};
+        filterLogsForActiveProfile(appData.diabetesLogs).forEach(l => {
+            if (!grouped[l.date]) grouped[l.date] = {};
+            grouped[l.date][mapReadingType(l)] = l.bloodSugar;
+        });
+
+        y += 10; doc.setFont('helvetica', 'normal'); doc.setTextColor(15, 23, 42);
+        Object.keys(grouped).sort().reverse().forEach((date, i) => {
+            if (i % 2 === 0) { doc.setFillColor(248, 250, 252); doc.rect(12, y, pageWidth - 24, 8, 'F'); }
+            doc.text(date, 14, y + 5.5);
+            const day = grouped[date];
+            ['Fasting', 'Pre Lunch', 'Post Lunch', 'Pre Dinner', 'Bedtime'].forEach((c, j) => {
+                doc.text(day[c] ? Math.round(day[c]).toString() : '-', 12 + ((j + 1) * colW) + 5, y + 5.5);
+            });
+            y += 8;
+        });
+        doc.save(`DiabetesReport_${profile.name}.pdf`);
+    }
+
     window.addEventListener('beforeunload', persistLocalBackup);
-
     document.getElementById('glucose-date').addEventListener('change', renderUI);
-
 </script>
-
-<!-- Libraries loaded AFTER the functions are defined -->
 <script src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
 <script src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
-
 </body>
 </html>

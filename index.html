@@ -215,7 +215,27 @@
                         <label for="glucose-date" class="visually-hidden">Date</label>
                         <input type="date" id="glucose-date" class="form-control">
                     </div>
-                    <div class="col-md-3 d-grid gap-2">
+                    <div class="col-md-3">
+                        <div class="row g-1">
+                            <div class="col-4">
+                                <select id="time-hour" class="form-select px-1 small">
+                                    <!-- Populated by JS -->
+                                </select>
+                            </div>
+                            <div class="col-4">
+                                <select id="time-min" class="form-select px-1 small">
+                                    <!-- Populated by JS -->
+                                </select>
+                            </div>
+                            <div class="col-4">
+                                <select id="time-ampm" class="form-select px-1 small">
+                                    <option>AM</option>
+                                    <option>PM</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 d-grid gap-2 mt-2">
                         <button id="glucose-save-button" class="btn btn-amber" onclick="saveGlucose()">Save Entry</button>
                         <button id="glucose-cancel-button" class="btn btn-soft d-none" onclick="cancelGlucoseEdit()">Cancel Edit</button>
                     </div>
@@ -291,6 +311,23 @@
     let fileId = null;
     let editingGlucoseId = null;
     const LOCAL_STORAGE_KEY = 'nutrilog_web_companion_backup';
+
+    function populateTimeSelectors() {
+        const hourSel = document.getElementById('time-hour');
+        const minSel = document.getElementById('time-min');
+        if (!hourSel || !minSel) return;
+        hourSel.innerHTML = ""; minSel.innerHTML = "";
+        for (let i = 1; i <= 12; i++) hourSel.add(new Option(i, i));
+        for (let i = 0; i < 60; i++) minSel.add(new Option(i.toString().padStart(2, '0'), i.toString().padStart(2, '0')));
+
+        const now = new Date();
+        let h = now.getHours();
+        const ampm = h >= 12 ? "PM" : "AM";
+        h = h % 12 || 12;
+        hourSel.value = h;
+        minSel.value = now.getMinutes().toString().padStart(2, '0');
+        document.getElementById('time-ampm').value = ampm;
+    }
 
     function createDefaultProfile(email, name) {
         return {
@@ -456,6 +493,7 @@
         document.getElementById('glucose-val').value = '';
         document.getElementById('glucose-type').value = 'Fasting';
         document.getElementById('glucose-date').value = selectedDate;
+        populateTimeSelectors();
         setEditingState(null);
     }
 
@@ -549,6 +587,16 @@
         document.getElementById('glucose-val').value = log.bloodSugar;
         document.getElementById('glucose-type').value = log.notes || 'Fasting';
         document.getElementById('glucose-date').value = log.date || new Date().toISOString().split('T')[0];
+
+        // Populate time selectors
+        const [h24, m] = (log.time || "12:00").split(":");
+        let h = parseInt(h24);
+        const ampm = h >= 12 ? "PM" : "AM";
+        h = h % 12 || 12;
+        document.getElementById('time-hour').value = h;
+        document.getElementById('time-min').value = m;
+        document.getElementById('time-ampm').value = ampm;
+
         setEditingState(log);
     }
 
@@ -749,6 +797,7 @@
     function maybeEnableButtons() {
         if (gapiInited && gisInited) {
             document.getElementById('signin-button').style.visibility = 'visible';
+            populateTimeSelectors();
         }
     }
 
@@ -971,8 +1020,14 @@
             !(normalizeLogProfileId(log, activeProfile.id) === activeProfile.id && log.date === date && log.notes === type)
         );
 
-        const now = new Date();
-        const timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+        const h = parseInt(document.getElementById('time-hour').value);
+        const m = document.getElementById('time-min').value;
+        const ampm = document.getElementById('time-ampm').value;
+        let h24 = h;
+        if (ampm === "PM" && h < 12) h24 += 12;
+        if (ampm === "AM" && h === 12) h24 = 0;
+        const timeStr = `${h24.toString().padStart(2, '0')}:${m}`;
+
         const existingId = editingGlucoseId || `g_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
 
         appData.diabetesLogs.push({

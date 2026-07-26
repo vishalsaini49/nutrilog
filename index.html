@@ -7,17 +7,98 @@
     <link rel="icon" href="data:,">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #0f172a; color: #f8fafc; font-family: sans-serif; }
-        .card { background-color: #1e293b; border: 1px solid #334155; color: #f8fafc; border-radius: 16px; margin-bottom: 20px; }
-        .btn-cyan { background-color: #22d3ee; color: #0f172a; font-weight: bold; border-radius: 10px; }
-        .btn-cyan:hover { background-color: #06b6d4; color: #0f172a; }
-        .btn-amber { background-color: #fbbf24; color: #0f172a; font-weight: bold; border-radius: 10px; }
-        .text-cyan { color: #22d3ee; }
-        .text-secondary { color: #94a3b8 !important; }
-        .table { color: #f8fafc; }
-        .table-dark { --bs-table-bg: #0f172a; }
-        #content { display: none; padding: 20px; }
-        #login-screen { display: flex; height: 100vh; align-items: center; justify-content: center; flex-direction: column; }
+        :root {
+            --bg: #07111f;
+            --panel: #121c2f;
+            --panel-2: #1a2740;
+            --border: #31425f;
+            --text: #f8fafc;
+            --muted: #9fb0c8;
+            --cyan: #22d3ee;
+            --amber: #fbbf24;
+            --emerald: #34d399;
+            --rose: #fb7185;
+        }
+        body {
+            background:
+                radial-gradient(circle at top left, rgba(34, 211, 238, 0.14), transparent 28%),
+                radial-gradient(circle at bottom right, rgba(251, 191, 36, 0.12), transparent 24%),
+                linear-gradient(180deg, #07111f 0%, #0b1425 100%);
+            color: var(--text);
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+        .card {
+            background: linear-gradient(180deg, rgba(18, 28, 47, 0.96), rgba(14, 22, 36, 0.96));
+            border: 1px solid rgba(49, 66, 95, 0.85);
+            color: var(--text);
+            border-radius: 20px;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.24);
+            margin-bottom: 20px;
+        }
+        .btn-cyan { background-color: var(--cyan); color: #07111f; font-weight: 700; border-radius: 12px; }
+        .btn-cyan:hover { background-color: #06b6d4; color: #07111f; }
+        .btn-amber { background-color: var(--amber); color: #07111f; font-weight: 700; border-radius: 12px; }
+        .btn-amber:hover { background-color: #f59e0b; color: #07111f; }
+        .btn-soft {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text);
+            border: 1px solid rgba(159, 176, 200, 0.18);
+            border-radius: 12px;
+        }
+        .btn-soft:hover { background: rgba(255, 255, 255, 0.08); color: var(--text); }
+        .text-cyan { color: var(--cyan); }
+        .text-secondary { color: var(--muted) !important; }
+        .table { color: var(--text); }
+        .table-dark { --bs-table-bg: #0b1425; }
+        .table > :not(caption) > * > * { background-color: transparent; }
+        .form-control, .form-select {
+            background-color: #0a1323;
+            color: var(--text);
+            border-color: rgba(159, 176, 200, 0.24);
+            border-radius: 12px;
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: #0a1323;
+            color: var(--text);
+            border-color: var(--cyan);
+            box-shadow: 0 0 0 0.2rem rgba(34, 211, 238, 0.15);
+        }
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(159, 176, 200, 0.18);
+            color: var(--muted);
+            font-size: 12px;
+        }
+        .metric-bar {
+            height: 10px;
+            background: #23324b;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .metric-bar > div {
+            height: 100%;
+            border-radius: inherit;
+        }
+        .table thead th {
+            border-bottom-color: rgba(159, 176, 200, 0.16);
+            color: var(--muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        #content { display: none; padding: 24px 0 32px; }
+        #login-screen { display: flex; min-height: 100vh; align-items: center; justify-content: center; flex-direction: column; padding: 24px; }
+        .section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); font-weight: 700; }
+        .entry-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(159, 176, 200, 0.12);
+            border-radius: 14px;
+        }
     </style>
 </head>
 <body>
@@ -29,42 +110,98 @@
 </div>
 
 <div id="content" class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-start gap-3 mb-4 flex-wrap">
         <div>
-            <h2 id="user-name" class="mb-0">Loading...</h2>
+            <h2 id="user-name" class="mb-1">Loading...</h2>
             <small id="user-email" class="text-secondary"></small>
         </div>
-        <button class="btn btn-outline-danger btn-sm" onclick="handleSignoutClick()">Logout</button>
+        <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-soft btn-sm" onclick="downloadBackup()">Download Backup</button>
+            <button class="btn btn-outline-danger btn-sm" onclick="handleSignoutClick()">Logout</button>
+        </div>
     </div>
 
-    <div class="row">
-        <!-- Dashboard Summary -->
-        <div class="col-md-4">
-            <div class="card p-3">
-                <h6 class="text-secondary small fw-bold">DAILY GOALS</h6>
-                <div id="goals-info">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Calories</span> <span id="goal-cal" class="text-cyan">0 / 2000</span>
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card p-3 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <div class="section-title">Profile Studio</div>
+                        <div class="text-secondary small">Manage the active user and daily goals.</div>
                     </div>
-                    <div class="progress mb-3" style="height: 8px; background: #334155;">
-                        <div id="progress-cal" class="progress-bar bg-success" style="width: 0%"></div>
+                    <span class="pill"><span id="profile-count">1</span> profiles</span>
+                </div>
+
+                <label for="profile-select" class="form-label small text-secondary mb-1">Active profile</label>
+                <select id="profile-select" class="form-select mb-3" onchange="switchProfileFromSelect()"></select>
+
+                <div class="row g-2">
+                    <div class="col-12">
+                        <label for="profile-name" class="form-label small text-secondary mb-1">Display name</label>
+                        <input type="text" id="profile-name" class="form-control" placeholder="User name">
                     </div>
+                    <div class="col-12">
+                        <label class="form-label small text-secondary mb-1">Account email</label>
+                        <div id="profile-email" class="pill w-100 justify-content-between">-</div>
+                    </div>
+                    <div class="col-4">
+                        <label for="profile-calorie-goal" class="form-label small text-secondary mb-1">Calories</label>
+                        <input type="number" id="profile-calorie-goal" class="form-control" min="1" step="1">
+                    </div>
+                    <div class="col-4">
+                        <label for="profile-protein-goal" class="form-label small text-secondary mb-1">Protein g</label>
+                        <input type="number" id="profile-protein-goal" class="form-control" min="0" step="1">
+                    </div>
+                    <div class="col-4">
+                        <label for="profile-fibre-goal" class="form-label small text-secondary mb-1">Fibre g</label>
+                        <input type="number" id="profile-fibre-goal" class="form-control" min="0" step="1">
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 mt-3">
+                    <button class="btn btn-cyan" onclick="saveActiveProfile()">Save Profile</button>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-soft flex-fill" onclick="addProfile()">New Profile</button>
+                        <button class="btn btn-soft flex-fill" onclick="deleteActiveProfile()">Delete Profile</button>
+                    </div>
+                </div>
+
+                <hr class="border-secondary border-opacity-25 my-3">
+
+                <div class="section-title mb-2">Today's goals</div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1"><span>Calories</span> <span id="goal-cal" class="text-cyan">0 / 0</span></div>
+                    <div class="metric-bar mb-3"><div id="progress-cal" style="width: 0%; background: var(--emerald);"></div></div>
+                    <div class="d-flex justify-content-between mb-1"><span>Protein</span> <span id="goal-protein" class="text-cyan">0 / 0 g</span></div>
+                    <div class="metric-bar mb-3"><div id="progress-protein" style="width: 0%; background: var(--cyan);"></div></div>
+                    <div class="d-flex justify-content-between mb-1"><span>Fibre</span> <span id="goal-fibre" class="text-cyan">0 / 0 g</span></div>
+                    <div class="metric-bar"><div id="progress-fibre" style="width: 0%; background: #f472b6;"></div></div>
+                </div>
+                <div class="row g-2">
+                    <div class="col-4"><span class="pill w-100 justify-content-center">Cal <strong id="today-calories">0</strong></span></div>
+                    <div class="col-4"><span class="pill w-100 justify-content-center">Prot <strong id="today-protein">0</strong></span></div>
+                    <div class="col-4"><span class="pill w-100 justify-content-center">Fib <strong id="today-fibre">0</strong></span></div>
                 </div>
             </div>
         </div>
 
-        <!-- Quick Log Glucose -->
-        <div class="col-md-8">
-            <div class="card p-3">
-                <h6 class="text-secondary small fw-bold mb-3">ADD BLOOD SUGAR READING</h6>
+        <div class="col-lg-8">
+            <div class="card p-3 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <div>
+                        <div class="section-title">Diabetes Tracker</div>
+                        <div class="text-secondary small" id="reading-mode-label">Add or update a glucose reading.</div>
+                    </div>
+                    <span class="pill"><span id="entry-count">0</span> entries on selected date</span>
+                </div>
                 <div class="row g-2">
                     <div class="col-md-3">
                         <label for="glucose-val" class="visually-hidden">Glucose Value</label>
-                        <input type="number" id="glucose-val" class="form-control bg-dark text-white border-secondary" placeholder="mg/dL">
+                        <input type="number" id="glucose-val" class="form-control" placeholder="mg/dL" min="1" step="0.1">
                     </div>
                     <div class="col-md-3">
                         <label for="glucose-type" class="visually-hidden">Reading Type</label>
-                        <select id="glucose-type" class="form-select bg-dark text-white border-secondary">
+                        <select id="glucose-type" class="form-select">
                             <option>Fasting</option>
                             <option>Pre Lunch</option>
                             <option>Post Lunch</option>
@@ -74,21 +211,52 @@
                     </div>
                     <div class="col-md-3">
                         <label for="glucose-date" class="visually-hidden">Date</label>
-                        <input type="date" id="glucose-date" class="form-control bg-dark text-white border-secondary">
+                        <input type="date" id="glucose-date" class="form-control">
                     </div>
-                    <div class="col-md-3">
-                        <button class="btn btn-amber w-100" onclick="saveGlucose()">Save Entry</button>
+                    <div class="col-md-3 d-grid gap-2">
+                        <button id="glucose-save-button" class="btn btn-amber" onclick="saveGlucose()">Save Entry</button>
+                        <button id="glucose-cancel-button" class="btn btn-soft d-none" onclick="cancelGlucoseEdit()">Cancel Edit</button>
                     </div>
                 </div>
+
+                <hr class="border-secondary border-opacity-25 my-4">
+
+                <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                    <div>
+                        <div class="section-title">Selected day readings</div>
+                        <div class="text-secondary small">Edit or delete the entries for the chosen date.</div>
+                    </div>
+                    <button class="btn btn-soft btn-sm" onclick="resetGlucoseForm()">Reset Form</button>
+                </div>
+                <div id="daily-entries" class="d-grid gap-2"></div>
             </div>
         </div>
     </div>
 
-    <!-- History Table -->
-    <div class="card p-3">
-        <h6 class="text-secondary small fw-bold mb-3">RECENT GLUCOSE HISTORY (Last 7 Days)</h6>
+    <div class="card p-3 mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div>
+                <div class="section-title">Glucose History</div>
+                <div class="text-secondary small">Filter a date range and export the active profile's readings.</div>
+            </div>
+            <button class="btn btn-soft btn-sm" onclick="exportGlucoseCsv()">Export CSV</button>
+        </div>
+        <div class="row g-2 mb-3">
+            <div class="col-md-4">
+                <label for="history-start" class="form-label small text-secondary mb-1">Start date</label>
+                <input type="date" id="history-start" class="form-control">
+            </div>
+            <div class="col-md-4">
+                <label for="history-end" class="form-label small text-secondary mb-1">End date</label>
+                <input type="date" id="history-end" class="form-control">
+            </div>
+            <div class="col-md-4 d-grid align-items-end">
+                <label class="form-label small text-secondary mb-1 invisible">Apply</label>
+                <button class="btn btn-cyan" onclick="applyHistoryRange()">Apply Range</button>
+            </div>
+        </div>
         <div class="table-responsive">
-            <table class="table table-dark table-hover small">
+            <table class="table table-dark table-hover small align-middle">
                 <thead>
                     <tr>
                         <th>Date</th>
@@ -99,9 +267,7 @@
                         <th>Bedtime</th>
                     </tr>
                 </thead>
-                <tbody id="history-body">
-                    <!-- Data injected here -->
-                </tbody>
+                <tbody id="history-body"></tbody>
             </table>
         </div>
     </div>
@@ -114,12 +280,279 @@
     */
     const CLIENT_ID = '583712898903-pg9sad629qfo578sci924e4705nmc757.apps.googleusercontent.com';
     const SCOPES = 'https://www.googleapis.com/auth/drive.appdata email profile';
+    const DEFAULT_GOALS = { calorieGoal: 2000, proteinGoal: 60, fibreGoal: 25 };
 
     let tokenClient;
     let gapiInited = false;
     let gisInited = false;
-    let appData = { email: "", profile: {}, nutritionLogs: [], diabetesLogs: [] };
+    let appData = { email: "", profiles: [], activeProfileId: null, nutritionLogs: [], diabetesLogs: [] };
     let fileId = null;
+    let editingGlucoseId = null;
+
+    function createDefaultProfile(email, name) {
+        return {
+            id: Date.now() + Math.floor(Math.random() * 1000),
+            email: email || "",
+            name: name || "Guest User",
+            calorieGoal: DEFAULT_GOALS.calorieGoal,
+            proteinGoal: DEFAULT_GOALS.proteinGoal,
+            fibreGoal: DEFAULT_GOALS.fibreGoal
+        };
+    }
+
+    function normalizeNumber(value, fallback) {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+    }
+
+    function normalizeProfile(profile, emailFallback) {
+        if (!profile) return null;
+        return {
+            id: normalizeNumber(profile.id, Date.now()),
+            email: profile.email || emailFallback || "",
+            name: profile.name || "User",
+            calorieGoal: normalizeNumber(profile.calorieGoal, DEFAULT_GOALS.calorieGoal),
+            proteinGoal: normalizeNumber(profile.proteinGoal, DEFAULT_GOALS.proteinGoal),
+            fibreGoal: normalizeNumber(profile.fibreGoal, DEFAULT_GOALS.fibreGoal)
+        };
+    }
+
+    function normalizeLogProfileId(log, defaultProfileId) {
+        return normalizeNumber(log.profileId, defaultProfileId);
+    }
+
+    function normalizeAppData(raw, userInfo) {
+        if (typeof raw === 'string') {
+            try {
+                raw = JSON.parse(raw);
+            } catch (error) {
+                raw = {};
+            }
+        }
+        const email = raw && raw.email ? raw.email : (userInfo?.email || "");
+        const incomingProfiles = Array.isArray(raw?.profiles) ? raw.profiles : (raw?.profile ? [raw.profile] : []);
+        const normalizedProfiles = incomingProfiles
+            .map(profile => normalizeProfile(profile, email))
+            .filter(Boolean);
+
+        if (normalizedProfiles.length === 0) {
+            normalizedProfiles.push(createDefaultProfile(email, userInfo?.name || "Guest User"));
+        }
+
+        const activeProfileId = normalizeNumber(raw?.activeProfileId, normalizedProfiles[0].id);
+
+        const nutritionLogs = Array.isArray(raw?.nutritionLogs) ? raw.nutritionLogs.map(log => ({
+            ...log,
+            profileId: normalizeLogProfileId(log, activeProfileId)
+        })) : [];
+
+        const diabetesLogs = Array.isArray(raw?.diabetesLogs) ? raw.diabetesLogs.map(log => ({
+            ...log,
+            profileId: normalizeLogProfileId(log, activeProfileId)
+        })) : [];
+
+        return {
+            email,
+            profiles: normalizedProfiles,
+            activeProfileId: normalizedProfiles.some(profile => profile.id === activeProfileId) ? activeProfileId : normalizedProfiles[0].id,
+            nutritionLogs,
+            diabetesLogs
+        };
+    }
+
+    function getActiveProfile() {
+        if (!Array.isArray(appData.profiles) || appData.profiles.length === 0) return null;
+        return appData.profiles.find(profile => profile.id === appData.activeProfileId) || appData.profiles[0];
+    }
+
+    function parseDate(value) {
+        return value || new Date().toISOString().split('T')[0];
+    }
+
+    function formatDateLabel(dateString) {
+        try {
+            const date = new Date(`${dateString}T00:00:00`);
+            return new Intl.DateTimeFormat(undefined, { weekday: 'short', month: 'short', day: 'numeric' }).format(date);
+        } catch (error) {
+            return dateString;
+        }
+    }
+
+    function getSelectedDate() {
+        return parseDate(document.getElementById('glucose-date').value);
+    }
+
+    function getHistoryRange() {
+        return {
+            start: document.getElementById('history-start').value,
+            end: document.getElementById('history-end').value
+        };
+    }
+
+    function setEditingState(log) {
+        editingGlucoseId = log ? log.id : null;
+        document.getElementById('glucose-save-button').innerText = editingGlucoseId ? 'Update Entry' : 'Save Entry';
+        document.getElementById('glucose-cancel-button').classList.toggle('d-none', !editingGlucoseId);
+        document.getElementById('reading-mode-label').innerText = editingGlucoseId ? 'Editing an existing reading.' : 'Add or update a glucose reading.';
+    }
+
+    function resetGlucoseForm(preserveDate) {
+        const selectedDate = preserveDate || new Date().toISOString().split('T')[0];
+        document.getElementById('glucose-val').value = '';
+        document.getElementById('glucose-type').value = 'Fasting';
+        document.getElementById('glucose-date').value = selectedDate;
+        setEditingState(null);
+    }
+
+    function cancelGlucoseEdit() {
+        resetGlucoseForm(document.getElementById('glucose-date').value);
+    }
+
+    function switchProfileFromSelect() {
+        const selectedId = Number(document.getElementById('profile-select').value);
+        if (!Number.isNaN(selectedId)) {
+            appData.activeProfileId = selectedId;
+            setEditingState(null);
+            renderUI();
+        }
+    }
+
+    function saveActiveProfile() {
+        const profile = getActiveProfile();
+        if (!profile) return;
+
+        profile.name = document.getElementById('profile-name').value.trim() || 'User';
+        profile.calorieGoal = normalizeNumber(document.getElementById('profile-calorie-goal').value, DEFAULT_GOALS.calorieGoal);
+        profile.proteinGoal = normalizeNumber(document.getElementById('profile-protein-goal').value, DEFAULT_GOALS.proteinGoal);
+        profile.fibreGoal = normalizeNumber(document.getElementById('profile-fibre-goal').value, DEFAULT_GOALS.fibreGoal);
+        profile.email = document.getElementById('profile-email').dataset.email || profile.email;
+        appData.profiles = appData.profiles.map(item => item.id === profile.id ? profile : item);
+        renderUI();
+        syncToDrive();
+        alert('Profile saved.');
+    }
+
+    function addProfile() {
+        const baseName = prompt('Enter a profile name', 'New Profile');
+        if (baseName === null) return;
+
+        const email = document.getElementById('profile-email').dataset.email || appData.email || '';
+        const newProfile = createDefaultProfile(email, baseName.trim() || 'User');
+        appData.profiles.push(newProfile);
+        appData.activeProfileId = newProfile.id;
+        renderUI();
+        syncToDrive();
+    }
+
+    function deleteActiveProfile() {
+        if (!Array.isArray(appData.profiles) || appData.profiles.length <= 1) {
+            alert('Keep at least one profile.');
+            return;
+        }
+
+        const activeProfile = getActiveProfile();
+        if (!activeProfile) return;
+
+        if (!confirm(`Delete profile "${activeProfile.name}" and its linked logs?`)) return;
+
+        appData.profiles = appData.profiles.filter(profile => profile.id !== activeProfile.id);
+        appData.nutritionLogs = (appData.nutritionLogs || []).filter(log => normalizeLogProfileId(log, activeProfile.id) !== activeProfile.id);
+        appData.diabetesLogs = (appData.diabetesLogs || []).filter(log => normalizeLogProfileId(log, activeProfile.id) !== activeProfile.id);
+        appData.activeProfileId = appData.profiles[0].id;
+        renderUI();
+        syncToDrive();
+    }
+
+    function buildActiveProfileOptions() {
+        const select = document.getElementById('profile-select');
+        select.innerHTML = '';
+
+        appData.profiles.forEach(profile => {
+            const option = document.createElement('option');
+            option.value = profile.id;
+            option.textContent = profile.name;
+            if (profile.id === appData.activeProfileId) option.selected = true;
+            select.appendChild(option);
+        });
+    }
+
+    function filterLogsForActiveProfile(logs) {
+        const profile = getActiveProfile();
+        if (!profile) return [];
+        return (logs || []).filter(log => normalizeLogProfileId(log, profile.id) === profile.id);
+    }
+
+    function findLogById(logId) {
+        return (appData.diabetesLogs || []).find(log => Number(log.id) === Number(logId));
+    }
+
+    function startEditGlucose(logId) {
+        const log = findLogById(logId);
+        if (!log) return;
+        document.getElementById('glucose-val').value = log.bloodSugar;
+        document.getElementById('glucose-type').value = log.notes || 'Fasting';
+        document.getElementById('glucose-date').value = log.date || new Date().toISOString().split('T')[0];
+        setEditingState(log);
+    }
+
+    function deleteGlucose(logId) {
+        const log = findLogById(logId);
+        if (!log) return;
+        if (!confirm(`Delete the ${log.notes || 'reading'} entry from ${log.date}?`)) return;
+        appData.diabetesLogs = (appData.diabetesLogs || []).filter(item => Number(item.id) !== Number(logId));
+        if (editingGlucoseId && Number(editingGlucoseId) === Number(logId)) resetGlucoseForm();
+        renderUI();
+        syncToDrive();
+    }
+
+    function applyHistoryRange() {
+        renderUI();
+    }
+
+    function exportGlucoseCsv() {
+        const profile = getActiveProfile();
+        if (!profile) return;
+        const { start, end } = getHistoryRange();
+        const filtered = filterLogsForActiveProfile(appData.diabetesLogs || [])
+            .filter(log => (!start || log.date >= start) && (!end || log.date <= end));
+        const rows = [
+            ['Profile', 'Date', 'Time', 'Reading Type', 'Blood Sugar', 'Notes']
+        ];
+
+        filtered.forEach(log => {
+            rows.push([
+                profile.name,
+                log.date,
+                log.time,
+                log.notes || '',
+                log.bloodSugar,
+                log.notes || ''
+            ]);
+        });
+
+        const csv = rows.map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(',')).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `DiabetesLogs_${profile.name.replace(/[^a-zA-Z0-9]/g, '_')}_${start || 'start'}_to_${end || 'end'}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+    }
+
+    function downloadBackup() {
+        const blob = new Blob([JSON.stringify(appData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'nutrilog_backup.json';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+    }
 
     function gapiLoaded() { gapi.load('client', intializeGapiClient); }
     async function intializeGapiClient() {
@@ -195,16 +628,16 @@
                     fileId: fileId,
                     alt: 'media'
                 });
-                appData = fileContent.result;
+                appData = normalizeAppData(fileContent.result || {}, userInfo);
                 renderUI();
             } else {
                 console.log("No backup file found, starting fresh.");
-                appData = {
+                appData = normalizeAppData({
                     email: userInfo.email,
                     profile: { name: userInfo.name, email: userInfo.email, calorieGoal: 2000, proteinGoal: 60, fibreGoal: 25 },
                     nutritionLogs: [],
                     diabetesLogs: []
-                };
+                }, userInfo);
                 renderUI();
             }
         } catch (e) {
@@ -214,42 +647,105 @@
     }
 
     function renderUI() {
-        // Goals
         const today = new Date().toISOString().split('T')[0];
-        const todayNutri = appData.nutritionLogs ? appData.nutritionLogs.filter(l => l.date === today) : [];
-        const totalCal = todayNutri.reduce((sum, l) => sum + (l.calories || 0), 0);
-        const goalCal = (appData.profile && appData.profile.calorieGoal) || 2000;
+        const activeProfile = getActiveProfile();
+        if (!activeProfile) return;
 
-        document.getElementById('goal-cal').innerText = `${Math.round(totalCal)} / ${goalCal}`;
-        document.getElementById('progress-cal').style.width = `${Math.min(100, (totalCal/goalCal)*100)}%`;
-        document.getElementById('glucose-date').value = today;
+        buildActiveProfileOptions();
 
-        // Table
-        const tbody = document.getElementById('history-body');
-        tbody.innerHTML = "";
+        document.getElementById('profile-count').innerText = appData.profiles.length;
+        document.getElementById('profile-name').value = activeProfile.name || '';
+        document.getElementById('profile-calorie-goal').value = Math.round(activeProfile.calorieGoal || DEFAULT_GOALS.calorieGoal);
+        document.getElementById('profile-protein-goal').value = Math.round(activeProfile.proteinGoal || DEFAULT_GOALS.proteinGoal);
+        document.getElementById('profile-fibre-goal').value = Math.round(activeProfile.fibreGoal || DEFAULT_GOALS.fibreGoal);
+        document.getElementById('profile-email').innerText = activeProfile.email || appData.email || 'Not set';
+        document.getElementById('profile-email').dataset.email = activeProfile.email || appData.email || '';
 
-        // Group by date
+        if (!document.getElementById('glucose-date').value) {
+            document.getElementById('glucose-date').value = today;
+        }
+        if (!document.getElementById('history-start').value || !document.getElementById('history-end').value) {
+            const end = new Date();
+            const start = new Date();
+            start.setDate(start.getDate() - 6);
+            document.getElementById('history-start').value = start.toISOString().split('T')[0];
+            document.getElementById('history-end').value = end.toISOString().split('T')[0];
+        }
+
+        const todayNutri = (appData.nutritionLogs || []).filter(log => normalizeLogProfileId(log, activeProfile.id) === activeProfile.id && log.date === today);
+        const totalCal = todayNutri.reduce((sum, log) => sum + (log.calories || 0), 0);
+        const totalProtein = todayNutri.reduce((sum, log) => sum + (log.protein || 0), 0);
+        const totalFibre = todayNutri.reduce((sum, log) => sum + (log.fibre || 0), 0);
+        const goalCal = activeProfile.calorieGoal || DEFAULT_GOALS.calorieGoal;
+        const goalProtein = activeProfile.proteinGoal || DEFAULT_GOALS.proteinGoal;
+        const goalFibre = activeProfile.fibreGoal || DEFAULT_GOALS.fibreGoal;
+
+        document.getElementById('goal-cal').innerText = `${Math.round(totalCal)} / ${Math.round(goalCal)}`;
+        document.getElementById('goal-protein').innerText = `${totalProtein.toFixed(1)} / ${Math.round(goalProtein)} g`;
+        document.getElementById('goal-fibre').innerText = `${totalFibre.toFixed(1)} / ${Math.round(goalFibre)} g`;
+        document.getElementById('progress-cal').style.width = `${Math.min(100, (totalCal / goalCal) * 100)}%`;
+        document.getElementById('progress-protein').style.width = `${Math.min(100, (totalProtein / goalProtein) * 100)}%`;
+        document.getElementById('progress-fibre').style.width = `${Math.min(100, (totalFibre / goalFibre) * 100)}%`;
+        document.getElementById('today-calories').innerText = Math.round(totalCal);
+        document.getElementById('today-protein').innerText = totalProtein.toFixed(1);
+        document.getElementById('today-fibre').innerText = totalFibre.toFixed(1);
+
+        const selectedDate = getSelectedDate();
+        const dailyEntries = filterLogsForActiveProfile(appData.diabetesLogs || [])
+            .filter(log => log.date === selectedDate)
+            .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
+        document.getElementById('entry-count').innerText = dailyEntries.length;
+
+        const dailyContainer = document.getElementById('daily-entries');
+        if (dailyEntries.length === 0) {
+            dailyContainer.innerHTML = `<div class="entry-card p-3 text-secondary">No readings logged for ${formatDateLabel(selectedDate)}.</div>`;
+        } else {
+            dailyContainer.innerHTML = dailyEntries.map(log => `
+                <div class="entry-card p-3 d-flex justify-content-between align-items-center gap-3 flex-wrap">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <strong class="text-cyan">${Number(log.bloodSugar).toFixed(1)} mg/dL</strong>
+                            <span class="pill">${log.notes || 'Reading'}</span>
+                        </div>
+                        <div class="text-secondary small mt-1">${log.date} • ${log.time || '--:--'}</div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-soft btn-sm" onclick="startEditGlucose(${log.id})">Edit</button>
+                        <button class="btn btn-outline-danger btn-sm" onclick="deleteGlucose(${log.id})">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        const { start, end } = getHistoryRange();
         const grouped = {};
-        if (appData.diabetesLogs) {
-            appData.diabetesLogs.forEach(log => {
+        filterLogsForActiveProfile(appData.diabetesLogs || [])
+            .filter(log => (!start || log.date >= start) && (!end || log.date <= end))
+            .forEach(log => {
                 if (!grouped[log.date]) grouped[log.date] = {};
                 grouped[log.date][log.notes] = log.bloodSugar;
             });
-        }
 
-        const sortedDates = Object.keys(grouped).sort().reverse().slice(0, 7);
-        sortedDates.forEach(date => {
-            const day = grouped[date];
-            const row = `<tr>
-                <td class="text-cyan">${date}</td>
-                <td>${day['Fasting'] || '-'}</td>
-                <td>${day['Pre Lunch'] || '-'}</td>
-                <td>${day['Post Lunch'] || '-'}</td>
-                <td>${day['Pre Dinner'] || '-'}</td>
-                <td>${day['Bedtime'] || '-'}</td>
-            </tr>`;
-            tbody.innerHTML += row;
-        });
+        const tbody = document.getElementById('history-body');
+        tbody.innerHTML = '';
+        const sortedDates = Object.keys(grouped).sort().reverse();
+        if (sortedDates.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center text-secondary py-4">No readings in the selected range.</td></tr>`;
+        } else {
+            sortedDates.forEach(date => {
+                const day = grouped[date];
+                const row = `<tr>
+                    <td class="text-cyan">${date}</td>
+                    <td>${day['Fasting'] || '-'}</td>
+                    <td>${day['Pre Lunch'] || '-'}</td>
+                    <td>${day['Post Lunch'] || '-'}</td>
+                    <td>${day['Pre Dinner'] || '-'}</td>
+                    <td>${day['Bedtime'] || '-'}</td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+        }
     }
 
     async function saveGlucose() {
@@ -259,15 +755,35 @@
 
         if (!val || !date) return alert("Please enter value and date");
 
+        const activeProfile = getActiveProfile();
+        if (!activeProfile) return alert('No profile selected.');
+
         if (!appData.diabetesLogs) appData.diabetesLogs = [];
 
-        // Remove existing duplicate
-        appData.diabetesLogs = appData.diabetesLogs.filter(l => !(l.date === date && l.notes === type));
+        const duplicate = appData.diabetesLogs.find(log =>
+            normalizeLogProfileId(log, activeProfile.id) === activeProfile.id &&
+            log.date === date &&
+            log.notes === type &&
+            Number(log.id) !== Number(editingGlucoseId)
+        );
+
+        if (duplicate && editingGlucoseId === null) {
+            const shouldReplace = confirm(`A ${type} reading already exists for ${date}. Replace it?`);
+            if (!shouldReplace) return;
+        }
+
+        appData.diabetesLogs = appData.diabetesLogs.filter(log =>
+            Number(log.id) === Number(editingGlucoseId) ||
+            !(normalizeLogProfileId(log, activeProfile.id) === activeProfile.id && log.date === date && log.notes === type)
+        );
 
         const now = new Date();
         const timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+        const existingId = editingGlucoseId || Date.now();
 
         appData.diabetesLogs.push({
+            id: existingId,
+            profileId: activeProfile.id,
             date: date,
             time: timeStr,
             bloodSugar: val,
@@ -275,10 +791,12 @@
             timestamp: Date.now()
         });
 
+        appData.diabetesLogs.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+        resetGlucoseForm(date);
         renderUI();
         await syncToDrive();
         alert("Saved & Synced!");
-        document.getElementById('glucose-val').value = "";
     }
 
     async function syncToDrive() {
@@ -311,6 +829,8 @@
             fileId = data.id;
         }
     }
+
+    document.getElementById('glucose-date').addEventListener('change', renderUI);
 
 </script>
 

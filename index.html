@@ -542,11 +542,20 @@
         ];
 
         filtered.forEach(log => {
+            const hour = parseInt((log.time || "12:00").split(":")[0]);
+            let noteKey = log.notes;
+            if (noteKey === "Pre-Meal") {
+                noteKey = (hour < 16) ? "Pre Lunch" : "Pre Dinner";
+            }
+            if (noteKey === "Post-Meal") {
+                noteKey = "Post Lunch";
+            }
+
             rows.push([
                 profile.name,
                 log.date,
                 log.time,
-                log.notes || '',
+                noteKey,
                 log.bloodSugar,
                 log.notes || ''
             ]);
@@ -582,9 +591,7 @@
 
         const { start, end } = getHistoryRange();
         const logs = filterLogsForActiveProfile(appData.diabetesLogs || [])
-            .filter(log => (!start || log.date >= start) && (!end || log.date <= end))
-            .slice()
-            .sort((a, b) => (a.date === b.date ? (a.time || '').localeCompare(b.time || '') : a.date.localeCompare(b.date)));
+            .filter(log => (!start || log.date >= start) && (!end || log.date <= end));
 
         if (!window.jspdf || !window.jspdf.jsPDF) {
             alert('PDF library failed to load. Please check your connection and try again.');
@@ -596,59 +603,99 @@
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
         const margin = 12;
-        const tableStartX = margin;
-        const tableWidth = pageWidth - margin * 2;
-        const columnWidths = [31, 24, 26, 24, 25, tableWidth - (31 + 24 + 26 + 24 + 25)];
-        const rowHeight = 8;
-
-        const drawRow = (y, cells, isHeader = false) => {
-            let x = tableStartX;
-            doc.setFillColor(isHeader ? 22 : 14, isHeader ? 36 : 22, isHeader ? 58 : 36);
-            doc.setTextColor(isHeader ? 159 : 248, isHeader ? 176 : 250, isHeader ? 200 : 252);
-            cells.forEach((cell, index) => {
-                doc.rect(x, y, columnWidths[index], rowHeight, 'F');
-                doc.setFontSize(isHeader ? 9 : 8);
-                doc.text(String(cell ?? ''), x + 1.5, y + 5.2, { maxWidth: columnWidths[index] - 3 });
-                x += columnWidths[index];
-            });
-        };
 
         const addPageHeader = () => {
-            doc.setFillColor(7, 17, 31);
-            doc.rect(0, 0, pageWidth, pageHeight, 'F');
+            // Navy Header Background
+            doc.setFillColor(30, 41, 59);
+            doc.rect(0, 0, pageWidth, 45, 'F');
+
             doc.setTextColor(248, 250, 252);
             doc.setFont('helvetica', 'bold');
-            doc.setFontSize(16);
-            doc.text('NutriLog Glucose Report', margin, 16);
+            doc.setFontSize(18);
+            doc.text('GLUCOSE DIABETES RECORD REPORT', margin, 18);
+
             doc.setFontSize(10);
             doc.setFont('helvetica', 'normal');
-            doc.text(`Profile: ${profile.name}`, margin, 23);
-            doc.text(`Date range: ${start || 'All time'} to ${end || 'All time'}`, margin, 29);
-            doc.text(`Generated: ${new Date().toLocaleString()}`, margin, 35);
+            doc.text('Structured Glucose & Meal-Triggered Blood Sugar Summary', margin, 25);
 
-            drawRow(42, ['Date', 'Time', 'Type', 'Glucose', 'Profile', 'Notes'], true);
+            // Info Box
+            doc.setFillColor(241, 245, 249);
+            doc.rect(margin, 30, pageWidth - (margin * 2), 12, 'F');
+            doc.setTextColor(15, 23, 42);
+            doc.setFontSize(9);
+            doc.text(`Patient: ${profile.name}`, margin + 4, 37);
+            doc.text(`Period: ${start || 'All'} to ${end || 'All'}`, margin + 80, 37);
         };
 
         addPageHeader();
-        let y = 50;
 
-        if (logs.length === 0) {
-            doc.setTextColor(248, 250, 252);
-            doc.text('No glucose readings found for the selected range.', margin, y);
-        } else {
-            logs.forEach(log => {
-                if (y + rowHeight > pageHeight - margin) {
-                    doc.addPage();
-                    addPageHeader();
-                    y = 50;
-                }
-                drawRow(y, [log.date, log.time || '-', log.notes || '-', Number(log.bloodSugar).toFixed(1), profile.name, log.notes || '-']);
-                y += rowHeight;
+        // Table Header
+        let y = 55;
+        const colWidths = [30, 30, 30, 30, 30, 30];
+        const tableWidth = pageWidth - (margin * 2);
+        const colW = tableWidth / 6;
+
+        const drawTableHeader = () => {
+            doc.setFillColor(30, 41, 59);
+            doc.rect(margin, y, tableWidth, 10, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'bold');
+            const headers = ['Date', 'Fasting', 'Pre Lunch', 'Post Lunch', 'Pre Dinner', 'Bedtime'];
+            headers.forEach((h, i) => {
+                doc.text(h, margin + (i * colW) + 2, y + 6.5);
             });
-        }
+            y += 10;
+        };
+
+        drawTableHeader();
+
+        // Data processing
+        const grouped = {};
+        logs.forEach(log => {
+            if (!grouped[log.date]) grouped[log.date] = {};
+            const hour = parseInt((log.time || "12:00").split(":")[0]);
+            let key = log.notes;
+            if (key === "Pre-Meal") key = (hour < 16) ? "Pre Lunch" : "Pre Dinner";
+            if (key === "Post-Meal") key = "Post Lunch";
+            grouped[log.date][key] = log.bloodSugar;
+        });
+
+        const sortedDates = Object.keys(grouped).sort().reverse();
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(15, 23, 42);
+
+        sortedDates.forEach((date, index) => {
+            if (y > pageHeight - 20) {
+                doc.addPage();
+                y = 15;
+                drawTableHeader();
+            }
+
+            // Alternating Row Color
+            if (index % 2 === 0) {
+                doc.setFillColor(248, 250, 252);
+                doc.rect(margin, y, tableWidth, 8, 'F');
+            }
+
+            doc.setFontSize(8.5);
+            doc.text(date, margin + 2, y + 5.5);
+
+            const day = grouped[date];
+            const cols = ['Fasting', 'Pre Lunch', 'Post Lunch', 'Pre Dinner', 'Bedtime'];
+            cols.forEach((c, i) => {
+                const val = day[c] ? Math.round(day[c]).toString() : '-';
+                doc.text(val, margin + ((i + 1) * colW) + 5, y + 5.5);
+            });
+
+            // Row border
+            doc.setDrawColor(226, 232, 240);
+            doc.line(margin, y + 8, margin + tableWidth, y + 8);
+            y += 8;
+        });
 
         const safeName = profile.name.replace(/[^a-zA-Z0-9]/g, '_');
-        doc.save(`Glucose_Report_${safeName}_${start || 'all'}_to_${end || 'all'}.pdf`);
+        doc.save(`DiabetesReport_${safeName}_${start || 'all'}_to_${end || 'all'}.pdf`);
     }
 
     function gapiLoaded() { gapi.load('client', intializeGapiClient); }
@@ -837,7 +884,17 @@
             .filter(log => (!start || log.date >= start) && (!end || log.date <= end))
             .forEach(log => {
                 if (!grouped[log.date]) grouped[log.date] = {};
-                grouped[log.date][log.notes] = log.bloodSugar;
+
+                const hour = parseInt((log.time || "12:00").split(":")[0]);
+                let noteKey = log.notes;
+                if (noteKey === "Pre-Meal") {
+                    noteKey = (hour < 16) ? "Pre Lunch" : "Pre Dinner";
+                }
+                if (noteKey === "Post-Meal") {
+                    noteKey = "Post Lunch";
+                }
+
+                grouped[log.date][noteKey] = log.bloodSugar;
             });
 
         const tbody = document.getElementById('history-body');

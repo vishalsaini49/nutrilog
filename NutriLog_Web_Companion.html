@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NutriLog Web Companion</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; font-family: sans-serif; }
+        .card { background-color: #1e293b; border: 1px solid #334155; color: #f8fafc; border-radius: 16px; margin-bottom: 20px; }
+        .btn-cyan { background-color: #22d3ee; color: #0f172a; font-weight: bold; border-radius: 10px; }
+        .btn-cyan:hover { background-color: #06b6d4; color: #0f172a; }
+        .btn-amber { background-color: #fbbf24; color: #0f172a; font-weight: bold; border-radius: 10px; }
+        .text-cyan { color: #22d3ee; }
+        .text-secondary { color: #94a3b8 !important; }
+        .table { color: #f8fafc; }
+        .table-dark { --bs-table-bg: #0f172a; }
+        #content { display: none; padding: 20px; }
+        #login-screen { display: flex; height: 100vh; align-items: center; justify-content: center; flex-direction: column; }
+    </style>
+</head>
+<body>
+
+<div id="login-screen">
+    <h1 class="text-cyan mb-4">NutriLog Web</h1>
+    <p class="text-secondary mb-4">Update your health logs from any browser</p>
+    <button id="signin-button" class="btn btn-cyan btn-lg px-5" onclick="handleAuthClick()">Sign In with Google</button>
+</div>
+
+<div id="content" class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 id="user-name" class="mb-0">Loading...</h2>
+            <small id="user-email" class="text-secondary"></small>
+        </div>
+        <button class="btn btn-outline-danger btn-sm" onclick="handleSignoutClick()">Logout</button>
+    </div>
+
+    <div class="row">
+        <!-- Dashboard Summary -->
+        <div class="col-md-4">
+            <div class="card p-3">
+                <h6 class="text-secondary small fw-bold">DAILY GOALS</h6>
+                <div id="goals-info">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Calories</span> <span id="goal-cal" class="text-cyan">0 / 2000</span>
+                    </div>
+                    <div class="progress mb-3" style="height: 8px; background: #334155;">
+                        <div id="progress-cal" class="progress-bar bg-success" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Log Glucose -->
+        <div class="col-md-8">
+            <div class="card p-3">
+                <h6 class="text-secondary small fw-bold mb-3">ADD BLOOD SUGAR READING</h6>
+                <div class="row g-2">
+                    <div class="col-md-3">
+                        <input type="number" id="glucose-val" class="form-control bg-dark text-white border-secondary" placeholder="mg/dL">
+                    </div>
+                    <div class="col-md-3">
+                        <select id="glucose-type" class="form-select bg-dark text-white border-secondary">
+                            <option>Fasting</option>
+                            <option>Pre Lunch</option>
+                            <option>Post Lunch</option>
+                            <option>Pre Dinner</option>
+                            <option>Bedtime</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="date" id="glucose-date" class="form-control bg-dark text-white border-secondary">
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-amber w-100" onclick="saveGlucose()">Save Entry</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Table -->
+    <div class="card p-3">
+        <h6 class="text-secondary small fw-bold mb-3">RECENT GLUCOSE HISTORY (Last 7 Days)</h6>
+        <div class="table-responsive">
+            <table class="table table-dark table-hover small">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Fasting</th>
+                        <th>Pre-L</th>
+                        <th>Post-L</th>
+                        <th>Pre-D</th>
+                        <th>Bedtime</th>
+                    </tr>
+                </thead>
+                <tbody id="history-body">
+                    <!-- Data injected here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
+<script src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
+
+<script>
+    /*
+       IMPORTANT: REPLACE THIS WITH YOUR CLIENT ID FROM GOOGLE CLOUD CONSOLE
+       Example: 123456789-abc.apps.googleusercontent.com
+    */
+    const CLIENT_ID = 'YOUR_CLIENT_ID_HERE';
+    const SCOPES = 'https://www.googleapis.com/auth/drive.appdata email profile';
+
+    let tokenClient;
+    let gapiInited = false;
+    let gisInited = false;
+    let appData = { email: "", profile: {}, nutritionLogs: [], diabetesLogs: [] };
+    let fileId = null;
+
+    function gapiLoaded() { gapi.load('client', intializeGapiClient); }
+    async function intializeGapiClient() {
+        await gapi.client.init({
+            discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],
+        });
+        gapiInited = true;
+        maybeEnableButtons();
+    }
+    function gisLoaded() {
+        tokenClient = google.accounts.oauth2.initTokenClient({
+            client_id: CLIENT_ID,
+            scope: SCOPES,
+            callback: '', // defined later
+        });
+        gisInited = true;
+        maybeEnableButtons();
+    }
+    function maybeEnableButtons() {
+        if (gapiInited && gisInited) {
+            document.getElementById('signin-button').style.visibility = 'visible';
+        }
+    }
+
+    function handleAuthClick() {
+        tokenClient.callback = async (resp) => {
+            if (resp.error !== undefined) throw (resp);
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
+            await loadDataFromDrive();
+        };
+
+        if (gapi.client.getToken() === null) {
+            tokenClient.requestAccessToken({prompt: 'consent'});
+        } else {
+            tokenClient.requestAccessToken({prompt: ''});
+        }
+    }
+
+    function handleSignoutClick() {
+        const token = gapi.client.getToken();
+        if (token !== null) {
+            google.accounts.oauth2.revoke(token.access_token);
+            gapi.client.setToken('');
+            document.getElementById('content').style.display = 'none';
+            document.getElementById('login-screen').style.display = 'flex';
+        }
+    }
+
+    async function loadDataFromDrive() {
+        // 1. Get User Info
+        const userResp = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: { Authorization: `Bearer ${gapi.client.getToken().access_token}` }
+        });
+        const userInfo = await userResp.json();
+        document.getElementById('user-name').innerText = userInfo.name;
+        document.getElementById('user-email').innerText = userInfo.email;
+
+        // 2. Find Backup File
+        const response = await gapi.client.drive.files.list({
+            spaces: 'appDataFolder',
+            q: "name = 'nutrilog_backup.json'",
+            fields: 'files(id, name)'
+        });
+
+        const files = response.result.files;
+        if (files && files.length > 0) {
+            fileId = files[0].id;
+            const fileContent = await gapi.client.drive.files.get({
+                fileId: fileId,
+                alt: 'media'
+            });
+            appData = fileContent.result;
+            renderUI();
+        } else {
+            console.log("No backup file found, starting fresh.");
+            appData = {
+                email: userInfo.email,
+                profile: { name: userInfo.name, email: userInfo.email, calorieGoal: 2000, proteinGoal: 60, fibreGoal: 25 },
+                nutritionLogs: [],
+                diabetesLogs: []
+            };
+            renderUI();
+        }
+    }
+
+    function renderUI() {
+        // Goals
+        const today = new Date().toISOString().split('T')[0];
+        const todayNutri = appData.nutritionLogs.filter(l => l.date === today);
+        const totalCal = todayNutri.reduce((sum, l) => sum + l.calories, 0);
+        const goalCal = appData.profile.calorieGoal || 2000;
+
+        document.getElementById('goal-cal').innerText = `${Math.round(totalCal)} / ${goalCal}`;
+        document.getElementById('progress-cal').style.width = `${Math.min(100, (totalCal/goalCal)*100)}%`;
+        document.getElementById('glucose-date').value = today;
+
+        // Table
+        const tbody = document.getElementById('history-body');
+        tbody.innerHTML = "";
+
+        // Group by date
+        const grouped = {};
+        appData.diabetesLogs.forEach(log => {
+            if (!grouped[log.date]) grouped[log.date] = {};
+            grouped[log.date][log.notes] = log.bloodSugar;
+        });
+
+        const sortedDates = Object.keys(grouped).sort().reverse().slice(0, 7);
+        sortedDates.forEach(date => {
+            const day = grouped[date];
+            const row = `<tr>
+                <td class="text-cyan">${date}</td>
+                <td>${day['Fasting'] || '-'}</td>
+                <td>${day['Pre Lunch'] || '-'}</td>
+                <td>${day['Post Lunch'] || '-'}</td>
+                <td>${day['Pre Dinner'] || '-'}</td>
+                <td>${day['Bedtime'] || '-'}</td>
+            </tr>`;
+            tbody.innerHTML += row;
+        });
+    }
+
+    async function saveGlucose() {
+        const val = parseFloat(document.getElementById('glucose-val').value);
+        const type = document.getElementById('glucose-type').value;
+        const date = document.getElementById('glucose-date').value;
+
+        if (!val || !date) return alert("Please enter value and date");
+
+        // Remove existing duplicate
+        appData.diabetesLogs = appData.diabetesLogs.filter(l => !(l.date === date && l.notes === type));
+
+        const now = new Date();
+        const timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+
+        appData.diabetesLogs.push({
+            date: date,
+            time: timeStr,
+            bloodSugar: val,
+            notes: type,
+            timestamp: Date.now()
+        });
+
+        renderUI();
+        await syncToDrive();
+        alert("Saved & Synced!");
+        document.getElementById('glucose-val').value = "";
+    }
+
+    async function syncToDrive() {
+        const metadata = {
+            name: 'nutrilog_backup.json',
+            mimeType: 'application/json'
+        };
+
+        const file = new Blob([JSON.stringify(appData)], {type: 'application/json'});
+
+        if (fileId) {
+            // Update
+            await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+                method: 'PATCH',
+                headers: { Authorization: `Bearer ${gapi.client.getToken().access_token}` },
+                body: file
+            });
+        } else {
+            // Create
+            const form = new FormData();
+            form.append('metadata', new Blob([JSON.stringify({ ...metadata, parents: ['appDataFolder'] })], { type: 'application/json' }));
+            form.append('file', file);
+
+            const resp = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${gapi.client.getToken().access_token}` },
+                body: form
+            });
+            const data = await resp.json();
+            fileId = data.id;
+        }
+    }
+
+</script>
+</body>
+</html>
